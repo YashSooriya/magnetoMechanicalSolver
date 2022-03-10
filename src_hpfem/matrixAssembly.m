@@ -89,14 +89,15 @@ for j = 1:esizet+3*esizeH1  %econt
                     % move Dirihlet columns to right hand side
                     if probstatic==0
                         
+%                         All Dirichlet values for AC problem now set in
+%                         frequencySolverFull
                         
                         
-                        
-                        C=Ccond{1};
-                        for nBody=2:NmechBodies
-                            C=C+Ccond{nBody};
-                        end
-                        Rv(row)=Rv(row)+(complex(0,1)*omega*C(j,k)+omega*CReg(j,k)+K(j,k)-omega2^2*M(j,k))*Xdir(k,1);
+%                         C=Ccond{1};
+%                         for nBody=2:NmechBodies
+%                             C=C+Ccond{nBody};
+%                         end
+%                         Rv(row)=Rv(row)+(complex(0,1)*omega*C(j,k)+omega*CReg(j,k)+K(j,k)-omega2^2*M(j,k))*Xdir(k,1);
                     else
                         C=Ccond{1};
                         for nBody=2:NmechBodies

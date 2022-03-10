@@ -2,9 +2,7 @@ function mainSerial(layers, neurons, N_s)
  
 orderEM = 1;
 orderMech = 1;
-%Describing conductivities for each of the shields. Rows as many
-%conductivity factors you wish to consider, and columns for as many
-%conducting bodies.
+%Describing conductivities for each of the shields. Rows as many conduct
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
@@ -83,8 +81,7 @@ couple           = 1;          % Solve coupled (1) or decoupled (0) problem
 SplitMech        = 0;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
 StaticMechanics  = 1;          % Run (1) or not (0) the static solver for the mechanical field (Only on if magnetic material)
 Non0Dir          = 1;          % Consider non-zero Dirichlet values (1) or not (0)
-freqSweep        = 1;          % Recompute BC if a function of frequency (1) or not (0)
-                               % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
+freqSweep        = 1;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
                                % Only necessary for non zero Dirichlet BC
 
 approxD          = 0;          % Calculate approx D for POD instead of interpolating G in PODI (1) or not (0)
