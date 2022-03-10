@@ -49,8 +49,7 @@ Unknown.system.nSparse=Static.nSparse;
 %---------------------------------------------------------------------
 % Include Dirichlet values in solution
 if Options.Non0Dir==1 && freqSweep==0
-    % Compute BC coefficents if they are non-zero and not changing with
-    % frequency
+    % Compu
     % Initial guess of the solution field
     ProblemData.probFlag=1;
     [AAC] = initialGuess(Mesh,Basis,Quadrature,Unknown.EM,ProblemData,2*pi*freqOut);
@@ -124,9 +123,7 @@ for i=1:nCond
         wReg       = (-1i)*w1;
 
         
-        if Options.Non0Dir==1 && freqSweep==1
-            % Update BC coefficents if they are non-zero and changing with
-            % frequency
+        if Options.Non0Dir==1
             % Include Dirichlet Values in the Solution
             ProblemData.probFlag=1;
             [AAC] = initialGuess(Mesh,Basis,Quadrature,Unknown.EM,ProblemData,omega);

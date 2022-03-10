@@ -46,7 +46,7 @@ Cvalpre         = cell(NmechBodies,1);
 for nBody=1:NmechBodies
     Cval{nBody}= zeros(nSparse,1) ;
     Cvalpre{nBody}= zeros(nSparse,1);
-    Cdval{nBody} = zeros(nSparse,1);
+    Cdval
 end
 CvalReg         = zeros(nSparse,1);
 CvalpreReg         = zeros(nSparse,1);
