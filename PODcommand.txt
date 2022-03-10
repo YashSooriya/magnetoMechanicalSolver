@@ -1,0 +1,2 @@
+matlab -nodisplay -r "generate_PODI_parallel(90,20,100)">& output_PODI_90.txt
+

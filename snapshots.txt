@@ -1,0 +1,32 @@
+ns = 2324
+delf1 = 1
+delf2 = 3
+
+ns = 1296
+delf1 = 2
+delf2 = 5
+
+ns = 599
+delf1 = 5
+delf2 = 10
+
+ns = 359
+delf1 = 5
+delf2 = 25
+
+ns = 180
+delf1 = 10
+delf2 = 50
+
+ns = 90
+delf1 = 20
+delf2 = 100
+
+ns = 45
+delf1 = 40
+delf2 = 200
+
+ns = 23
+delf1 = 80
+delf2 = 400
+
