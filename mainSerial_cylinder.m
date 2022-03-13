@@ -47,7 +47,7 @@ end
 % orderEM:               Polynomial order of the H(curl) basis functions
 % orderMech:             Polynomial order of the H^1 basis functions
 % CondFactorSample:      Matrix containing the conductivities to sample (the factors that multiply the reference conductivity)
-%                        Each row is a different choice and each column a different conducting subdomain (OVC, 77K, 4K) for MRI
+%                        Each row is a different choice and each column a different conducting subdomain (4K, 77K, OVC) for MRI
 % CondFactorOut:         Matrix containing the conductivities for which to compute the solution (the factors tha multiply the reference conductivity)
 % CondFactorChoice:      User specified label for the chosen output conductivities (Used only to create names for data files)
 % freqSample:            Vector containing the frequencies in Hz to sample for each conductivity
