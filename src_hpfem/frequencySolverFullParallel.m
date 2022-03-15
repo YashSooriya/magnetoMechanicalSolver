@@ -78,11 +78,12 @@ else
     %Resid=Res;
 end
 
-if freqSweep==1
-    dirDOF=lenEM+[(1:ndirEM) ndirEM+lenM+(1:ndirMech)];
-    % Add Dirichlet contributions to residual vector (the vector X contains the weights);
-    Resid=Resid+Md*X(dirDOF,2)+Cd*X(dirDOF,2)+(Kd+wReg*CdReg)*X(dirDOF,1);
-end
+% Legacy code note that X has only 1 column and so this will not work.
+% if freqSweep==1
+%     dirDOF=lenEM+[(1:ndirEM) ndirEM+lenM+(1:ndirMech)];
+%     % Add Dirichlet contributions to residual vector (the vector X contains the weights);
+%     Resid=Resid+Md*X(dirDOF,2)+Cd*X(dirDOF,2)+(Kd+wReg*CdReg)*X(dirDOF,1);
+% end
 
 
 % Get number of different conductivities to solve for

@@ -89,11 +89,14 @@ offlineOnly      = 0;          % Only calculate the offline stage, skip the onli
 fieldCalc        = 0;          % Calculate integrated field quantities (Output Power, Kinetic Energy)
 CustomMRIPost    = 0;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
                                % (0) Return the dissipaed power and kinetic energy for the different unnamed mechanical subdomains
-normA            = 0;          % Return the integrated Magnetic vector potential (Norm of A)
+
+normA            = 0;          % Return the integrated Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
+normCurlA        = 0;          % Return the integrated curl of the Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 linePlotOn       = 0;          % Line plot of the fields
 paraview         = 1;          % Paraview .vtk file writer
 errorsOn         = 0;          % Compute error with respect to analytical solution
 ErrorPOD         = 0;          % Compute error of POD with respect to full order (e_2)
+FixedPoint       = 0;
 
 % svd save file name
 svdSave          = 0;          % Use custom save name for SVD, will use default if 0
@@ -105,7 +108,7 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';% File name for SVD mat file
 
 % Define string with problem file name
 %problem= 'MHIGradXSplitNewCoil';
-problem='1';
+problem='Cylinder';
 
 %=========================================================================
 % Extract the problem data from the problem file
@@ -316,10 +319,51 @@ end
 % Compute dissipated power and kinetic Energy
 %=========================================================================
 if fieldCalc==1
+    disp('Calcuating Power and Energy ...')
     [IntegratedFields]= PowerAndEnergyComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
-    fileName=sprintf('FrequencySweepParallelFullTest%dto%dHz_damp%s_q%d_p%d_CondFactor%sOVCNS',freqOut(1),freqOut(length(freqOut)),dampChoice,orderEM,orderMech,CondFactorChoice);
-    save(fileName,'IntegratedFields');
+    currDate = strrep(datestr(datetime), ':','_');
+    folder = ['data/powerEnergy/',currDate,'/'];
+    mkdir(folder)
+    writestruct(Options,[folder,'Options.xml'])
+    saveFile=[folder,'FrequencySweepMHIGradXPowerEnergy'];
+    save(saveFile,'IntegratedFields');
+    disp(['Saved to ', saveFile])
 end
+
+%=========================================================================
+% Compute the Norm of A field
+%=========================================================================
+
+if normA==1
+    disp('Calcuating Norm A ...')
+    [IntegratedNormA]= NormAComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
+    currDate = strrep(datestr(datetime), ':','_');
+    folder = ['data/normA/',currDate,'/'];
+    mkdir(folder)
+    writestruct(Options,[folder,'Options.xml'])
+    saveFile=[folder,'FrequencySweepMHIGradXNormA'];
+    save(saveFile,'IntegratedNormA');
+    disp(['Saved to ', saveFile])
+end
+%=========================================================================
+
+%=========================================================================
+% Compute the Norm of the curlA field
+%=========================================================================
+
+if normCurlA==1
+    disp('Calcuating Norm curlA ...')
+    [IntegratedNormCurlA]= CurlNormAComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
+    currDate = strrep(datestr(datetime), ':','_');
+    folder = ['data/normCurlA/',currDate,'/'];
+    mkdir(folder)
+    writestruct(Options,[folder,'Options.xml'])
+    saveFile=[folder,'FrequencySweepMHIGradXNormCurlA'];
+    save(saveFile,'IntegratedNormCurlA');
+    disp(['Saved to ', saveFile])
+end
+%=========================================================================
+
 %=========================================================================
 % Compute magnetic vector potential
 %=========================================================================
