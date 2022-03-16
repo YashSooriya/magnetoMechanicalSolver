@@ -156,6 +156,8 @@ mat4K=[1 2 3];
 mat77K=[4 5 6];
 matOVC=[7 8 9];
 matAir=10;
+matMech=[mat4K;mat77K;matOVC];
+[NmechBodies,~]=size(matMech);
 %-------------------------------------------------------------------------------
 % Store material properties on probdata.matr substructure
 %-------------------------------------------------------------------------------
@@ -183,6 +185,7 @@ probdata.mat4K=mat4K;
 probdata.mat77K=mat77K;
 probdata.matOVC=matOVC;
 probdata.matAir=matAir;
+probdata.NmechBodies=NmechBodies;
 
 %-------------------------------------------------------------------------
 % Blending Function Info (over write defaults)
