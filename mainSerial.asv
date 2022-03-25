@@ -1,7 +1,7 @@
 function mainSerial(layers, neurons, N_s)
  
-orderEM = 3;
-orderMech = 3;
+orderEM = 2;
+orderMech = 2;
 %Describing conductivities for each of the shields. Rows as many
 %conductivity factors you wish to consider, and columns for as many
 %conducting bodies.
@@ -71,12 +71,12 @@ addpath(genpath('./'))
 % 1 - on, 0 - off
 
 % Pre processing flags
-ReadMesh         = 1;          % Read mesh (1) or load existing mesh data (0)
+ReadMesh         = 0;          % Read mesh (1) or load existing mesh data (0)
 
 % Solver Flags
 POD              = 0;          % Use POD ROM (1) or Full Order (0)
 PODP             = 0;          % Use PODP (1) or PODI(0). Note PODI has been implemented for 1 parameter only.
-Offline          = 1;          % Compute off-line POD stage (1) or load existing data from file (0)
+Offline          = 0;          % Compute off-line POD stage (1) or load existing data from file (0)
 SourceMapping    = 0;          % Map current to solenoidal space (1) or not (0) (Required for transversal coils)
 Assemble         = 1;          % Assemble system matrices (1) or load assembled matrices from file
 couple           = 1;          % Solve coupled (1) or decoupled (0) problem
@@ -119,13 +119,13 @@ networkActivation= 'logistic'; % Activation function for each hidden layer in th
 % Post processing flags
 networkOnly      = 0;          % Only train the neural networks in the online stage
 offlineOnly      = 0;          % Only calculate the offline stage, skip the online (only for POD ROM)
-fieldCalc        = 1;          % Calculate integrated field quantities (Output Power, Kinetic Energy)
-CustomMRIPost    = 1;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
+fieldCalc        = 0;          % Calculate integrated field quantities (Output Power, Kinetic Energy)
+CustomMRIPost    = 0;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
                                % (0) Return the dissipaed power and kinetic energy for the different unnamed mechanical subdomains
 normA            = 0;          % Return the integrated Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 normCurlA        = 0;          % Return the integrated curl of the Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 linePlotOn       = 0;          % Line plot of the fields
-paraview         = 0;          % Paraview .vtk file writer
+paraview         = 1;          % Paraview .vtk file writer
 errorsOn         = 0;          % Compute error with respect to analytical solution
 ErrorPOD         = 0;          % Compute error of POD with respect to full order (e_2)
 FixedPoint       = 0;
