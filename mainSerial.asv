@@ -1,7 +1,7 @@
 function mainSerial(layers, neurons, N_s)
  
-orderEM = 2;
-orderMech = 2;
+orderEM = 1;
+orderMech = 1;
 %Describing conductivities for each of the shields. Rows as many
 %conductivity factors you wish to consider, and columns for as many
 %conducting bodies.
@@ -76,7 +76,7 @@ ReadMesh         = 0;          % Read mesh (1) or load existing mesh data (0)
 % Solver Flags
 POD              = 0;          % Use POD ROM (1) or Full Order (0)
 PODP             = 0;          % Use PODP (1) or PODI(0). Note PODI has been implemented for 1 parameter only.
-Offline          = 0;          % Compute off-line POD stage (1) or load existing data from file (0)
+Offline          = ;          % Compute off-line POD stage (1) or load existing data from file (0)
 SourceMapping    = 0;          % Map current to solenoidal space (1) or not (0) (Required for transversal coils)
 Assemble         = 1;          % Assemble system matrices (1) or load assembled matrices from file
 couple           = 1;          % Solve coupled (1) or decoupled (0) problem

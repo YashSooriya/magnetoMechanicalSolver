@@ -602,7 +602,7 @@ if order>=2
                     fun=ProblemData.es.dirfun;
                     arg=ProblemData.es.dirfunarg;
                     index=cond(i,j);
-                    e=fun(x,y,z,index,arg,probstatic,probFlag,omega,x_dir,y_dir,z_dir);
+                    e=fun(x,y,z,index,arg,probstatic,probFlag,omega,x_dir,x_dir,x_dir);
                     
                     
                     % tangential exact over face

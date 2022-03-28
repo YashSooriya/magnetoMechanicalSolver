@@ -1,5 +1,4 @@
-function probdata = problemToyNon0(pm)
-
+function probdata = problemToyNon0(pm,test)
 
 % include standard options (include BC, src definition etc)
 probdata=[];
@@ -12,6 +11,9 @@ probdata.bctypeouter=2;   % 2 Dirichlet outer BC
 % Polynomial Degree Info Order
 order=pm; 
 
+% x_dir = 0;
+% y_dir = 0;
+% z_dir = 0.05;
 
  %--------------------------------------------------------------------------
  % Define lines for plotting the magnetic fields
@@ -67,7 +69,7 @@ probdata.TOL_GMRES=TOL_GMRES;
 % -------------------------------------------------------------------------
 % Define current magnitude (DC and AC coils)
 % Define the static current density magnitude
-JDC         = 0;
+JDC         = 253.2*1e6;
 Jratio      = 0.022116904;
 JAC         = JDC*Jratio;
                             
@@ -249,6 +251,7 @@ arg.JAC=JAC;
 % define the function handle for Dirichlet BC's
 probdata.es.dirfun=@esproblemdir;
 probdata.es.dirfunarg=arg;
+% probdata.non0=[x_dir, y_dir, z_dir];
 
 % define the source terms
 probdata.es.srcfunarg=[];
@@ -280,15 +283,15 @@ probdata.es.exactcurlfunarg=arg;
 
 
 % Dirichlet Boundary Condition----------------------------------------------
-function e=esproblemdir(x,y,z,index,arg,probstatic,probFlag,omega)    
+function e=esproblemdir(x,y,z,index,arg,probstatic,probFlag,omega,x_dir,y_dir,z_dir)    
 
 if probFlag==1                  % EM problem
-e=[0.05;0;0];
+e=[0;0;0];
 
 
 elseif probFlag==2                      % Mechanical problem
     
-    e=[0.05;0;0];
+    e=[x_dir;y_dir;z_dir];
 end
  
     function grade=gradExact(x,y,z,arg)

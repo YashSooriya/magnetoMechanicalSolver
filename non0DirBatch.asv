@@ -1,0 +1,21 @@
+function [x,y,z] = non0DirBatch(axis, disp_min, disp_max, disp_inc)
+
+axis = 'x';             % Set non-zero dirichlett direction (x,y,z)
+
+disp_min = 0;           % Set starting displacement value (in metres)
+disp_max = 0.05;        % Set final displacement value (in metres)
+disp_inc = 0.01;        % Set increment steps (in metres)
+
+[x, y, z] = deal(0);
+
+for i = disp_min:disp_inc:disp_max
+    if axis == 'x'
+        x = i;
+    elseif axis == 'y'
+        y = i;
+    elseif axis == 'z'
+        z = i;
+    else
+        disp('Axis for non-0 dir has been defined incorrectly')
+    end
+end

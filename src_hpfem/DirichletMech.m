@@ -39,6 +39,10 @@ lec = zeros(6,gorder,3);
 lfc = zeros(4,(gorder*(gorder-1)/2),3);
 dirval = zeros(npec,1);
 
+x_dir = ProblemData.non0(1);
+y_dir = ProblemData.non0(2);
+z_dir = ProblemData.non0(3);
+
 % find integration points along edge
 % int_-1^+1 dx
 kind=1;
@@ -84,7 +88,7 @@ arg=ProblemData.es.dirfunarg;
 for i=1:nNodes
     for k=1:3                        % 3 dimensions
         if unkvertexMech(i,k)<0      % This is a Dirichlet DOF
-            value=fun(coord(i,1),coord(i,2),coord(i,3),1,arg,probstatic,probFlag);
+            value=fun(coord(i,1),coord(i,2),coord(i,3),1,arg,probstatic,probFlag,omega,x_dir,y_dir,z_dir);
             dirval(abs(unkvertexMech(i,k)))=value(k);
         end
     end
@@ -313,7 +317,7 @@ for i=1:nelem
                     fun=ProblemData.es.dirfun;
                     arg=ProblemData.es.dirfunarg;
                     index=bcedge(glob(i,j));
-                    value=fun(x,y,z,index,arg,probstatic,probFlag,omega);
+                    value=fun(x,y,z,index,arg,probstatic,probFlag,omega,x_dir,y_dir,z_dir);
                     
                     
                     
@@ -588,7 +592,7 @@ if orderH1>=3
                     fun=ProblemData.es.dirfun;
                     arg=ProblemData.es.dirfunarg;
                     index=cond(i,j);
-                    value=fun(x,y,z,index,arg,probstatic,probFlag,omega);
+                    value=fun(x,y,z,index,arg,probstatic,probFlag,omega,x_dir,y_dir,z_dir);
                     
                     
                     

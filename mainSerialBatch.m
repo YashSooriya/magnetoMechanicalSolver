@@ -1,4 +1,4 @@
-function mainSerial(layers, neurons, N_s)
+function mainSerialBatch(layers, neurons, N_s, dirDisp)
  
 orderEM = 1;
 orderMech = 1;
@@ -142,12 +142,16 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';    % File name for SVD mat fi
 % Define string with problem file name
 problem='ToyNon0';
 
+
 %=========================================================================
 % Extract the problem data from the problem file
 %=========================================================================
 
 % Determine problem data based on the problem files
 ProblemData = eval(['problem',num2str(problem),'(orderEM)']);
+
+% Initialise and set displacement values for non-0 dir
+ProblemData.non0=dirDisp;
 
 % Store the extra problem specific data in the ProblemData structure
 ProblemData.order = orderEM;
@@ -299,6 +303,7 @@ Options.ffnValRatio=ffnValRatio;
 Options.ffnTestRatio=ffnTestRatio;
 Options.ffnMinGrad=ffnMinGrad;
 Options.ffnEpochs=ffnEpochs;
+Options.dirDisp=dirDisp;
 %=======================================================================================================================================
 % Coupled Problem solver
 %=======================================================================================================================================

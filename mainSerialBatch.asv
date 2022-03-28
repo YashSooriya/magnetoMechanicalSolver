@@ -1,4 +1,4 @@
-function mainSerial(layers, neurons, N_s)
+function mainSerialBatch(layers, neurons, N_s)
  
 orderEM = 1;
 orderMech = 1;
@@ -142,6 +142,7 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';    % File name for SVD mat fi
 % Define string with problem file name
 problem='ToyNon0';
 
+
 %=========================================================================
 % Extract the problem data from the problem file
 %=========================================================================
@@ -153,6 +154,9 @@ ProblemData = eval(['problem',num2str(problem),'(orderEM)']);
 ProblemData.order = orderEM;
 ProblemData.orderH1 = orderMech;
 MaxOrder=max(orderEM,ProblemData.orderH1);
+
+
+probdata.non0=[x_dir, y_dir, z_dir];
 
 %-------------------------------------------------------------------------
 % Read mesh
