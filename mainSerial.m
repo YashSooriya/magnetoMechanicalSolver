@@ -13,6 +13,7 @@ chooseOut = "single";
 dampRatio = 2e-3;
 dampChoice = '2e-3';
 nModes = 20;
+dirDisp = [0 0 0.05];
 
 if chooseSample == "marcos"
     % ns 2324 1296 599 359 180 90 45 23
@@ -148,6 +149,9 @@ problem='ToyNon0';
 
 % Determine problem data based on the problem files
 ProblemData = eval(['problem',num2str(problem),'(orderEM)']);
+
+% Initialise and set displacement values for non-0 dir
+ProblemData.non0=dirDisp;
 
 % Store the extra problem specific data in the ProblemData structure
 ProblemData.order = orderEM;
@@ -299,6 +303,7 @@ Options.ffnValRatio=ffnValRatio;
 Options.ffnTestRatio=ffnTestRatio;
 Options.ffnMinGrad=ffnMinGrad;
 Options.ffnEpochs=ffnEpochs;
+Options.dirDisp=dirDisp;
 %=======================================================================================================================================
 % Coupled Problem solver
 %=======================================================================================================================================
