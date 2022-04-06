@@ -1,16 +1,19 @@
 function mainParallel(N_s)
+
+delete(gcp('nocreate'))
  
-orderEM = 2;
-orderMech = 2;
+orderEM = 3;
+orderMech = 3;
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
 chooseSample = "marcos";
-chooseOut = "single";
+chooseOut = "marcos";
 dampRatio = 2e-3;
 dampChoice = '2e-3';
 nModes = 20;
-Ncores = 2;
+Ncores = 8;
+dirDisp = [0 0 0];
 
 if chooseSample == "marcos"
     % ns 2324 1296 599 359 180 90 45 23
@@ -70,30 +73,30 @@ addpath(genpath('./'))
 % 1 - on, 0 - off
 
 % Pre processing flags
-ReadMesh         = 1;          % Read mesh (1) or load existing mesh data (0)
+ReadMesh         = 0;          % Read mesh (1) or load existing mesh data (0)
 
 % Solver Flags
 POD              = 0;          % Use POD ROM (1) or Full Order (0)
 PODP             = 0;          % Use PODP (1) or PODI(0). Note PODI has been implemented for 1 parameter only.
-Offline          = 1;          % Compute off-line POD stage (1) or load existing data from file (0)
+Offline          = 0;          % Compute off-line POD stage (1) or load existing data from file (0)
 SourceMapping    = 0;          % Map current to solenoidal space (1) or not (0) (Required for transversal coils)
 Assemble         = 1;          % Assemble system matrices (1) or load assembled matrices from file
-couple           = 0;          % Solve coupled (1) or decoupled (0) problem
-SplitMech        = 0;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
+couple           = 1;          % Solve coupled (1) or decoupled (0) problem
+SplitMech        = 1;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
 StaticMechanics  = 1;          % Run (1) or not (0) the static solver for the mechanical field (Only on if magnetic material)
 Non0Dir          = 1;          % Consider non-zero Dirichlet values (1) or not (0)
-freqSweep        = 1;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
+freqSweep        = 0;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
                                % Only necessary for non zero Dirichlet BC
 % Post processing flags
 offlineOnly      = 0;          % Only calculate the offline stage, skip the online (only for POD ROM)
-fieldCalc        = 0;          % Calculate integrated field quantities (Output Power, Kinetic Energy)
-CustomMRIPost    = 0;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
+fieldCalc        = 1;          % Calculate integrated field quantities (Output Power, Kinetic Energy)
+CustomMRIPost    = 1;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
                                % (0) Return the dissipaed power and kinetic energy for the different unnamed mechanical subdomains
 
 normA            = 0;          % Return the integrated Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 normCurlA        = 0;          % Return the integrated curl of the Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 linePlotOn       = 0;          % Line plot of the fields
-paraview         = 1;          % Paraview .vtk file writer
+paraview         = 0;          % Paraview .vtk file writer
 errorsOn         = 0;          % Compute error with respect to analytical solution
 ErrorPOD         = 0;          % Compute error of POD with respect to full order (e_2)
 FixedPoint       = 0;
@@ -108,7 +111,7 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';% File name for SVD mat file
 
 % Define string with problem file name
 %problem= 'MHIGradXSplitNewCoil';
-problem='Cylinder';
+problem='ToyNon0';
 
 %=========================================================================
 % Extract the problem data from the problem file
@@ -116,6 +119,9 @@ problem='Cylinder';
 
 % Determine problem data based on the problem files
 ProblemData = eval(['problem',num2str(problem),'(orderEM)']);
+
+% Initialise and set displacement values for non-0 dir
+ProblemData.non0=dirDisp;
 
 % Store the extra problem specific data in the ProblemData structure
 ProblemData.order = orderEM;
