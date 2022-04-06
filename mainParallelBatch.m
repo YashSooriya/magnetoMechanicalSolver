@@ -1,10 +1,7 @@
-function mainSerial(layers, neurons, N_s)
+function mainParallelBatch(N_s, dirDisp)
  
-orderEM = 1;
-orderMech = 1;
-%Describing conductivities for each of the shields. Rows as many
-%conductivity factors you wish to consider, and columns for as many
-%conducting bodies.
+orderEM = 2;
+orderMech = 2;
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
@@ -13,6 +10,7 @@ chooseOut = "single";
 dampRatio = 2e-3;
 dampChoice = '2e-3';
 nModes = 20;
+Ncores = 2;
 
 if chooseSample == "marcos"
     % ns 2324 1296 599 359 180 90 45 23
@@ -38,26 +36,27 @@ elseif chooseOut == "evenly spaced"
     N_o = 40;
     freqOut = linspace(15, 5000, N_o);
 elseif chooseOut == "single"
-    freqOut = 500;
+    freqOut = 1000;
 elseif chooseOut == "snapshots"
     freqOut = freqSample;
 end
 
 %====================================================================================================================================================
-% Main script used to run the coupled solver (serial version)
+% Main script used to run the coupled solver (parallel version)
 %====================================================================================================================================================
 % Input parameters:
 % orderEM:               Polynomial order of the H(curl) basis functions
 % orderMech:             Polynomial order of the H^1 basis functions
 % CondFactorSample:      Matrix containing the conductivities to sample (the factors that multiply the reference conductivity)
-%                        Each row is a different choice and each column a different conducting subdomain (4K, 77K, OVC) for MRI
+%                        Each row is a different choice and each column a different conducting subdomain (OVC, 77K, 4K for MRI)
 % CondFactorOut:         Matrix containing the conductivities for which to compute the solution (the factors tha multiply the reference conductivity)
 % CondFactorChoice:      User specified label for the chosen output conductivities (Used only to create names for data files)
 % freqSample:            Vector containing the frequencies in Hz to sample for each conductivity
 % freqOut:               Vector containing the frequencies in Hz for which to compute the solution for each conductivity
-% dampRatio:             Damping ratio used to damp the mechanica system
+% dampRatio:             Damping ratio used to damp the mechanica system    
 % dampChoice:            User specified label for the chosen damping ratio (Used only to create names for data files)
 % nModes:                Number of POD modes
+% Ncores:                Number of workers to use for parallel computation
 %======================================================================================================================================================
 clc
 close all
@@ -71,57 +70,26 @@ addpath(genpath('./'))
 % 1 - on, 0 - off
 
 % Pre processing flags
-ReadMesh         = 0;          % Read mesh (1) or load existing mesh data (0)
+ReadMesh         = 1;          % Read mesh (1) or load existing mesh data (0)
 
 % Solver Flags
 POD              = 0;          % Use POD ROM (1) or Full Order (0)
 PODP             = 0;          % Use PODP (1) or PODI(0). Note PODI has been implemented for 1 parameter only.
-Offline          = ;          % Compute off-line POD stage (1) or load existing data from file (0)
+Offline          = 1;          % Compute off-line POD stage (1) or load existing data from file (0)
 SourceMapping    = 0;          % Map current to solenoidal space (1) or not (0) (Required for transversal coils)
 Assemble         = 1;          % Assemble system matrices (1) or load assembled matrices from file
-couple           = 1;          % Solve coupled (1) or decoupled (0) problem
-SplitMech        = 1;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
+couple           = 0;          % Solve coupled (1) or decoupled (0) problem
+SplitMech        = 0;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
 StaticMechanics  = 1;          % Run (1) or not (0) the static solver for the mechanical field (Only on if magnetic material)
 Non0Dir          = 1;          % Consider non-zero Dirichlet values (1) or not (0)
-freqSweep        = 0;          % Recompute BC if a function of frequency (1) or not (0)
-                               % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
+freqSweep        = 1;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
                                % Only necessary for non zero Dirichlet BC
-
-approxD          = 0;          % Calculate approx D for POD instead of interpolating G in PODI (1) or not (0)
-
-% Neural network
-neuralNetworkPODI    = 0;      % Consider a neural network for the SVD in PODI interpolating function (1) or lagrangian (0)
-neuralNetworkPODP    = 0;      % Consider a neural network for the SVD in PODP (1) or normal projection (0)
-
-feedForwardNet   = 1;          % Consider feedforwardnet for the neural network implementation (1) or scikit-learn regressor (0)
-functionFitNet   = 0;          % Consider a function fitting neural network implementation (1) or ffn (0)
-ffnLayers        = layers;          % Number of hidden layers
-ffnNeurons       = neurons;         % Number of hidden neurons
-ffnSolver        = 'trainbr';  % Training function used for back propagation
-ffnPerMode       = 1;          % Train a NN per mode (1) or just one (0)
-ffnLoggedFreq    = 1;          % Log the sample frequency into the neural network
-ffnReg           = 0;          % Percentage regularization in network (default is 0)
-ffnTrainRatio    = 0.85;       % Percentage of input data for purely training (default is 0.7)
-ffnValRatio      = 0;          % Percentage of input data for validation (default is 0.15)
-ffnTestRatio     = 0.15;       % Percentage of input data for testing (default is 0.15)
-ffnMinGrad       = 1e-10;       % Minimum gradient reached during training (default is 1e-7)
-ffnEpochs        = 1000;       % Maximum number of epochs during training (default is 1000)
-
-
-networkSegmented = 0;          % Consider segments of frequencies (x) as separate neural networks (1) or not (0)
-segmentNo        = 2;          % No of segments for the segmented neural network
-networkPerMode   = 1;          % Neural network for each mode of right handed singular value (y)
-networkLayers    = 1;          % Hidden layers in neural network
-networkNeurons   = 50;          % Neurons in each hidden layer for the neural network
-networkSolver    = 'lbfgs';     % The solver used for the neural network, choice between 'adam' and 'lbfgs' which is a quasi-newton method
-networkActivation= 'logistic'; % Activation function for each hidden layer in the neural network
-
 % Post processing flags
-networkOnly      = 0;          % Only train the neural networks in the online stage
 offlineOnly      = 0;          % Only calculate the offline stage, skip the online (only for POD ROM)
 fieldCalc        = 0;          % Calculate integrated field quantities (Output Power, Kinetic Energy)
 CustomMRIPost    = 0;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
                                % (0) Return the dissipaed power and kinetic energy for the different unnamed mechanical subdomains
+
 normA            = 0;          % Return the integrated Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 normCurlA        = 0;          % Return the integrated curl of the Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 linePlotOn       = 0;          % Line plot of the fields
@@ -132,15 +100,15 @@ FixedPoint       = 0;
 
 % svd save file name
 svdSave          = 0;          % Use custom save name for SVD, will use default if 0
-svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';    % File name for SVD mat file
-
+svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';% File name for SVD mat file
 
 %-------------------------------------------------------------------------
 % Problem Definition
 %-------------------------------------------------------------------------
 
 % Define string with problem file name
-problem='ToyNon0';
+%problem= 'MHIGradXSplitNewCoil';
+problem='Cylinder';
 
 %=========================================================================
 % Extract the problem data from the problem file
@@ -148,6 +116,9 @@ problem='ToyNon0';
 
 % Determine problem data based on the problem files
 ProblemData = eval(['problem',num2str(problem),'(orderEM)']);
+
+% Initialise and set displacement values for non-0 dir
+ProblemData.non0=dirDisp;
 
 % Store the extra problem specific data in the ProblemData structure
 ProblemData.order = orderEM;
@@ -272,33 +243,9 @@ Options.CustomMRIPost=CustomMRIPost;
 Options.freqSweep=freqSweep;
 Options.Non0Dir=Non0Dir;
 Options.normA=normA;
-Options.neuralNetworkPODI=neuralNetworkPODI;
-Options.neuralNetworkPODP=neuralNetworkPODP;
-Options.feedForwardNet=feedForwardNet;
-Options.functionFitNet=functionFitNet;
 Options.svdSave=svdSave;
 Options.svdSaveName=svdSaveName;
-Options.networkLayers=networkLayers;
-Options.networkNeurons=networkNeurons;
-Options.networkSolver=networkSolver;
-Options.networkActivation=networkActivation;
-Options.networkSegmented=networkSegmented;
-Options.segmentNo=segmentNo;
-Options.networkPerMode=networkPerMode;
-Options.ffnNeurons=ffnNeurons;
-Options.ffnSolver=ffnSolver;
-Options.ffnLayers=ffnLayers;
-Options.ffnPerMode=ffnPerMode;
-Options.ffnLoggedFreq=ffnLoggedFreq;
-Options.networkOnly=networkOnly;
-Options.chooseSample=chooseSample;
-Options.approxD=approxD;
-Options.ffnReg=ffnReg;
-Options.ffnTrainRatio=ffnTrainRatio;
-Options.ffnValRatio=ffnValRatio;
-Options.ffnTestRatio=ffnTestRatio;
-Options.ffnMinGrad=ffnMinGrad;
-Options.ffnEpochs=ffnEpochs;
+Options.dirDisp=dirDisp;
 %=======================================================================================================================================
 % Coupled Problem solver
 %=======================================================================================================================================
@@ -318,12 +265,12 @@ end
 % Dynamic Solver (Frequency domain)
 if POD==1
     if PODP==1
-    [Dynamic]=frequencySolverPODPSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes);
+        [Dynamic]=frequencySolverPODPParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes,Ncores);
     else
-     [Dynamic]=frequencySolverPODISerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes);
+        [Dynamic]=frequencySolverPODIParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes,Ncores);
     end
 else
-[Dynamic]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice);
+    [Dynamic]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores);
 end
 
 
@@ -386,7 +333,6 @@ if fieldCalc==1
     save(saveFile,'IntegratedFields');
     disp(['Saved to ', saveFile])
 end
-%=========================================================================
 
 %=========================================================================
 % Compute the Norm of A field
@@ -422,6 +368,14 @@ if normCurlA==1
 end
 %=========================================================================
 
+%=========================================================================
+% Compute magnetic vector potential
+%=========================================================================
+if normA==1
+    [IntegratedNormA]= NormAComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
+    fileName=sprintf('FrequencySweepParallelFullTestNormA%dto%dHz_damp%s_q%d_p%d_CondFactor%sOVCNS',freqOut(1),freqOut(length(freqOut)),dampChoice,orderEM,orderMech,CondFactorChoice);
+    save(fileName,'IntegratedNormA');
+end
 
 %=========================================================================
 % Compute error of POD solution with respect to full order (e_2)
@@ -452,5 +406,7 @@ end
 fileName=sprintf('ErrorPODCase1');
 save(fileName,'ErrorPOD','ErrorPODEM','ErrorPODMech');
 end
+        
 
-toc
+
+  toc
