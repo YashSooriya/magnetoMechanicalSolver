@@ -9,11 +9,11 @@ CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
 chooseSample = "marcos";
-chooseOut = "single";
+chooseOut = "marcos";
 dampRatio = 2e-3;
 dampChoice = '2e-3';
 nModes = 20;
-dirDisp = [0 0 0.05];
+dirDisp = [0 0 0.001];   
 
 if chooseSample == "marcos"
     % ns 2324 1296 599 359 180 90 45 23
@@ -124,7 +124,7 @@ fieldCalc        = 1;          % Calculate integrated field quantities (Output P
 CustomMRIPost    = 1;          % (1)Return dissipated power and kinetic energy directly for 4K, 77K and OVC shields (Customised for MRI problems)
                                % (0) Return the dissipaed power and kinetic energy for the different unnamed mechanical subdomains
 normA            = 0;          % Return the integrated Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
-normCurlA        = 1;          % Return the integrated curl of the Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
+normCurlA        = 0;          % Return the integrated curl of the Magnetic vector potential for 4K, 77K and OVC shields (1) or not (0)
 linePlotOn       = 0;          % Line plot of the fields
 paraview         = 0;          % Paraview .vtk file writer
 errorsOn         = 0;          % Compute error with respect to analytical solution

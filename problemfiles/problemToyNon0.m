@@ -8,12 +8,14 @@ probdata=standoptions(probdata);
 probdata.bctypeouter=2;   % 2 Dirichlet outer BC
                           % 3 Neumann outer BC
 
+% Choose if main coils are powered (1) or not (0)
+mainCoilsPower = 1;
+
+% Choose if gradient coils are powered (1) or not (0)
+gradCoilsPower = 1;
+
 % Polynomial Degree Info Order
 order=pm; 
-
-% x_dir = 0;
-% y_dir = 0;
-% z_dir = 0.05;
 
  %--------------------------------------------------------------------------
  % Define lines for plotting the magnetic fields
@@ -69,9 +71,24 @@ probdata.TOL_GMRES=TOL_GMRES;
 % -------------------------------------------------------------------------
 % Define current magnitude (DC and AC coils)
 % Define the static current density magnitude
-JDC         = 253.2*1e6;
+
+if mainCoilsPower == 1
+    JDC         = 253.2*1e6;
+else
+    JDC         = 0;
+end
+
 Jratio      = 0.022116904;
-JAC         = JDC*Jratio;
+
+if gradCoilsPower == 1
+    JAC         = JDC*Jratio;
+else
+    JAC         = 0;
+end
+
+% JDC         = 253.2*1e6;
+% Jratio      = 0.022116904;
+% JAC         = JDC*Jratio;
                             
  %--------------------------------------------------------------------------
 % Material properties
