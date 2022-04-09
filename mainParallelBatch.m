@@ -1,5 +1,6 @@
 function mainParallelBatch(N_s, dirDisp, dampRatio, orderEM, orderMech, Ncores, ReadMesh)
  
+delete(gcp('nocreate'))
 
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
