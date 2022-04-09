@@ -2,8 +2,8 @@ clear all
 clc
 
 solver = 1;             % Use parallel solver (1) or serial solver (0)
-orderEM = 3;            % Set polynomial order of the H(curl) basis functions
-orderMech = 3;          % Set polynomial order of the H^1 basis functions
+orderEM = 1;            % Set polynomial order of the H(curl) basis functions
+orderMech = 1;          % Set polynomial order of the H^1 basis functions
 Ns = 90;                % Set number of snapshots desired
 axis = 'z';             % Set non-zero dirichlett direction (x,y,z)
 dampRatio = 0;          % Set damping ratio

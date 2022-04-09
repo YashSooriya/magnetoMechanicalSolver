@@ -13,9 +13,9 @@ X=zeros(nunkt+npec,1);
 % end
 
 if probFlag==1
-[known]= DirichletEM(mesh,Basis,unknown,Quadrature,1,ProblemData,omega);
+[known]= DirichletEMP(mesh,Basis,unknown,Quadrature,1,ProblemData,omega,probFlag);
 elseif probFlag==2
-    [known]= DirichletMech(mesh,Basis,unknown,Quadrature,ProblemData,omega);
+    [known]= DirichletMechP(mesh,Basis,unknown,Quadrature,ProblemData,omega, probFlag);
 end
 
 X(nunkt+1:nunkt+npec)=known;
