@@ -1,20 +1,13 @@
-function mainParallelBatch(N_s, dirDisp)
+function mainParallelBatch(N_s, dirDisp, dampRatio, orderEM, orderMech, Ncores, ReadMesh)
  
-orderEM = 2;
-orderMech = 2;
+
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
 chooseSample = "marcos";
 chooseOut = "marcos";
-dampRatio = 2e-3;
-dampChoice = '2e-3';
+dampChoice = num2str(dampRatio,'%.e');
 nModes = 20;
-<<<<<<< Updated upstream:mainParallelBatch.m
-Ncores = 2;
-=======
-dirDisp = [0 0 0.001];   
->>>>>>> Stashed changes:mainSerial.asv
 
 if chooseSample == "marcos"
     % ns 2324 1296 599 359 180 90 45 23
@@ -73,17 +66,10 @@ addpath(genpath('./'))
 % Switches to turn certain feature on/off
 % 1 - on, 0 - off
 
-% Pre processing flags
-ReadMesh         = 1;          % Read mesh (1) or load existing mesh data (0)
-
 % Solver Flags
 POD              = 0;          % Use POD ROM (1) or Full Order (0)
 PODP             = 0;          % Use PODP (1) or PODI(0). Note PODI has been implemented for 1 parameter only.
-<<<<<<< Updated upstream:mainParallelBatch.m
-Offline          = 1;          % Compute off-line POD stage (1) or load existing data from file (0)
-=======
 Offline          = 0;          % Compute off-line POD stage (1) or load existing data from file (0)
->>>>>>> Stashed changes:mainSerial.asv
 SourceMapping    = 0;          % Map current to solenoidal space (1) or not (0) (Required for transversal coils)
 Assemble         = 1;          % Assemble system matrices (1) or load assembled matrices from file
 couple           = 0;          % Solve coupled (1) or decoupled (0) problem
@@ -116,7 +102,7 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';% File name for SVD mat file
 
 % Define string with problem file name
 %problem= 'MHIGradXSplitNewCoil';
-problem='Cylinder';
+problem='ToyNon0';
 
 %=========================================================================
 % Extract the problem data from the problem file
@@ -253,30 +239,6 @@ Options.Non0Dir=Non0Dir;
 Options.normA=normA;
 Options.svdSave=svdSave;
 Options.svdSaveName=svdSaveName;
-<<<<<<< Updated upstream:mainParallelBatch.m
-=======
-Options.networkLayers=networkLayers;
-Options.networkNeurons=networkNeurons;
-Options.networkSolver=networkSolver;
-Options.networkActivation=networkActivation;
-Options.networkSegmented=networkSegmented;
-Options.segmentNo=segmentNo;
-Options.networkPerMode=networkPerMode;
-Options.ffnNeurons=ffnNeurons;
-Options.ffnSolver=ffnSolver;
-Options.ffnLayers=ffnLayers;
-Options.ffnPerMode=ffnPerMode;
-Options.ffnLoggedFreq=ffnLoggedFreq;
-Options.networkOnly=networkOnly;
-Options.chooseSample=chooseSample;
-Options.approxD=approxD;
-Options.ffnReg=ffnReg;
-Options.ffnTrainRatio=ffnTrainRatio;
-Options.ffnValRatio=ffnValRatio;
-Options.ffnTestRatio=ffnTestRatio;
-Options.ffnMinGrad=ffnMinGrad;
-Options.ffnEpochs=ffnEpochs;
->>>>>>> Stashed changes:mainSerial.asv
 Options.dirDisp=dirDisp;
 %=======================================================================================================================================
 % Coupled Problem solver
@@ -360,7 +322,7 @@ if fieldCalc==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/powerEnergy/',currDate,'/'];
     mkdir(folder)
-    writestruct(Options,[folder,'Options.xml'])
+    writetable(struct2table(Options), 'Options.txt')
     saveFile=[folder,'FrequencySweepMHIGradXPowerEnergy'];
     save(saveFile,'IntegratedFields');
     disp(['Saved to ', saveFile])
@@ -376,7 +338,7 @@ if normA==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/normA/',currDate,'/'];
     mkdir(folder)
-    writestruct(Options,[folder,'Options.xml'])
+    writetable(struct2table(Options), 'Options.txt')
     saveFile=[folder,'FrequencySweepMHIGradXNormA'];
     save(saveFile,'IntegratedNormA');
     disp(['Saved to ', saveFile])
@@ -393,7 +355,7 @@ if normCurlA==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/normCurlA/',currDate,'/'];
     mkdir(folder)
-    writestruct(Options,[folder,'Options.xml'])
+    writetable(struct2table(Options), 'Options.txt')
     saveFile=[folder,'FrequencySweepMHIGradXNormCurlA'];
     save(saveFile,'IntegratedNormCurlA');
     disp(['Saved to ', saveFile])

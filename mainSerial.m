@@ -167,22 +167,22 @@ job = ProblemData.jb.job;
 fileName=strcat('Mesh_',job);
 
 if ReadMesh==1
-if ProblemData.jb.meshtype==3
-    meshdata = textread([job '.vol'], '%s','delimiter', '\n');
-    disp('reading netgen mesh....')
-    [Mesh]=meshinfo(meshdata,ProblemData);
-    disp('...done')
-elseif ProblemData.jb.meshtype==4
-    disp('reading ANSYS mesh....')
-    [Mesh]= ansysmeshinfo(ProblemData);
-    disp('...done')
-elseif ProblemData.jb.meshtype==5
-    name=ProblemData.jb.name;
-    disp('Reading Opera mesh...')
-    [Mesh] = OperaMeshReader(name,ProblemData);
-    disp('...done')
-end
-    save(fileName,'Mesh');
+    if ProblemData.jb.meshtype==3
+        meshdata = textread([job '.vol'], '%s','delimiter', '\n');
+        disp('reading netgen mesh....')
+        [Mesh]=meshinfo(meshdata,ProblemData);
+        disp('...done')
+    elseif ProblemData.jb.meshtype==4
+        disp('reading ANSYS mesh....')
+        [Mesh]= ansysmeshinfo(ProblemData);
+        disp('...done')
+    elseif ProblemData.jb.meshtype==5
+        name=ProblemData.jb.name;
+        disp('Reading Opera mesh...')
+        [Mesh] = OperaMeshReader(name,ProblemData);
+        disp('...done')
+    end
+        save(fileName,'Mesh');
 else
     load (fileName,'Mesh');
 end
