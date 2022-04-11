@@ -1,7 +1,5 @@
-function mainSerialBatch(layers, neurons, N_s, dirDisp)
+function mainSerialBatch(layers, neurons, N_s, dirDisp, dampRatio, orderEM, orderMech, ReadMesh)
  
-orderEM = 1;
-orderMech = 1;
 %Describing conductivities for each of the shields. Rows as many
 %conductivity factors you wish to consider, and columns for as many
 %conducting bodies.
@@ -10,8 +8,7 @@ CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
 chooseSample = "marcos";
 chooseOut = "marcos";
-dampRatio = 2e-3;
-dampChoice = '2e-3';
+dampChoice = num2str(dampRatio,'%.e');
 nModes = 20;
 
 if chooseSample == "marcos"
@@ -71,7 +68,7 @@ addpath(genpath('./'))
 % 1 - on, 0 - off
 
 % Pre processing flags
-ReadMesh         = 0;          % Read mesh (1) or load existing mesh data (0)
+%ReadMesh         = 0;          % Read mesh (1) or load existing mesh data (0)
 
 % Solver Flags
 POD              = 0;          % Use POD ROM (1) or Full Order (0)
