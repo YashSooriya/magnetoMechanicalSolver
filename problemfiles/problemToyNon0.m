@@ -12,7 +12,7 @@ probdata.bctypeouter=2;   % 2 Dirichlet outer BC
 mainCoilsPower = 1;
 
 % Choose if gradient coils are powered (1) or not (0)
-gradCoilsPower = 0;
+gradCoilsPower = 1;
 
 % Polynomial Degree Info Order
 order=pm; 

@@ -2,8 +2,8 @@ function mainParallel(N_s)
 
 delete(gcp('nocreate'))
  
-orderEM = 3;
-orderMech = 3;
+orderEM = 1;
+orderMech = 1;
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
@@ -248,6 +248,7 @@ Options.Non0Dir=Non0Dir;
 Options.normA=normA;
 Options.svdSave=svdSave;
 Options.svdSaveName=svdSaveName;
+Options.dirDisp=dirDisp;
 %=======================================================================================================================================
 % Coupled Problem solver
 %=======================================================================================================================================

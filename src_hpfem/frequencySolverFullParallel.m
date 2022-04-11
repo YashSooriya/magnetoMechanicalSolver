@@ -73,10 +73,10 @@ fileName=strcat(fileName,ProblemData.jb.job);
 if Assemble==1
     disp('Constructing the Stiffness and Forcing Matrices')
     % Assemble the system components into the tangent matrix and Residual
-    [M,Ccond,Ccondpre,CReg,CpreReg,K,Resid,Kd,Cd,CdReg,Md,~]=elementLoop(Static,StaticCurrent,Mesh,Basis,Quadrature,Unknown,UnknownCurrent,UnknownStatic,ProblemData,X,couple,freqSweep,SourceMapping);
+    [M,Ccond,Ccondpre,CReg,CpreReg,K,Resid_fixed,Kd,Cdcond,CdReg,Md,~]=elementLoop(Static,StaticCurrent,Mesh,Basis,Quadrature,Unknown,UnknownCurrent,UnknownStatic,ProblemData,X,couple,freqSweep,SourceMapping);
     %save(fileName,'M','C','Cpre','CReg','CpreReg','K','Res','Kd','Cd','CdReg','Md','-v7.3');
 else
-    load(fileName,'M','C','Cpre','CReg','CpreReg','K','Res','Kd','Cd','CdReg','Md');
+    load(fileName,'M','C','Cpre','CReg','CpreReg','K','Res','Kd','Cd','CdReg','Md', 'Ccond', 'Ccondpre', 'Resid');
     %Resid=Res;
 end
 
@@ -100,7 +100,7 @@ parpool(Ncores)
 % Copy matrices to workers for parallel efficiency
 MP=parallel.pool.Constant(M);
 KP=parallel.pool.Constant(K);
-ResidP=parallel.pool.Constant(Resid);
+ResidP=parallel.pool.Constant(Resid_fixed);
 CRegP=parallel.pool.Constant(CReg);
 CpreRegP=parallel.pool.Constant(CpreReg);
 for i=1:nCond
@@ -111,6 +111,15 @@ for i=1:nCond
     C=C+CondFactorOut(i,nBody)*Ccond{nBody};
     Cpre=Cpre+CondFactorOut(i,nBody)*Ccondpre{nBody};
     end
+    %We want to Cd which are the contributions to the damping matrix
+    %relating to Dircihlet DOFs. These need to be built in the same way as
+    %C so we want to allow for each mechanical body to have a different
+    %conductivity factor.
+    Cd=CondFactorOut(i,1)*Cdcond{1};
+    for nBody=2:NmechBodies
+    Cd=Cd+CondFactorOut(i,nBody)*Cdcond{nBody};
+    end
+
     CP=parallel.pool.Constant(C);
     CpreP=parallel.pool.Constant(Cpre);
     parfor j=1:length(freqOut)
@@ -121,20 +130,14 @@ for i=1:nCond
         w0         = 1;
         w1         = complex(0,1)*omega;
         w2         = -omega^2;
+        wReg       = (-1i)*w1;
         
 
         
-        if Options.SplitMech==1
-            [U] = linearSystemSolver(Unknown,ProblemData,w0,w1,w2,...
-                MP.Value,CP.Value,CRegP.Value,KP.Value,ResidP.Value,CpreP.Value,CpreRegP.Value,Options,dampRatio);
-        else
-            [U] = linearSystemSolverNS(Unknown,ProblemData,w0,w1,w2,...
-                MP.Value,CP.Value,CRegP.Value,KP.Value,ResidP.Value,CpreP.Value,CpreRegP.Value,dampRatio);
-        end
-        % Update solution vector (if Dirichlet values contained in X, otherwise X=0 and X=X+U=U);
-        U=U+X;
         
-        if Options.Non0Dir==1
+        
+        
+        if Options.Non0Dir==1 && freqSweep==1
             % Include Dirichlet Values in the Solution
             probFlag=1;
             [AAC] = initialGuessP(Mesh,Basis,Quadrature,Unknown.EM,ProblemData,omega,probFlag);
@@ -151,6 +154,21 @@ for i=1:nCond
             X2=[AAC;UAC];
             U=U+X2;
         end
+
+        dirDOF=lenEM+[(1:ndirEM) ndirEM+lenM+(1:ndirMech)];
+        Resid=Resid_fixed+w2*Md*X(dirDOF)+w1*Cd*X(dirDOF)+(w0*Kd+wReg*CdReg)*X(dirDOF);
+
+        if Options.Non0Dir==1 && freqSweep==1
+            [U] = linearSystemSolver(Unknown,ProblemData,w0,w1,w2,...
+                MP.Value,CP.Value,CRegP.Value,KP.Value,Resid,CpreP.Value,CpreRegP.Value,Options,dampRatio);
+        else
+            [U] = linearSystemSolverNS(Unknown,ProblemData,w0,w1,w2,...
+                MP.Value,CP.Value,CRegP.Value,KP.Value,Resid,CpreP.Value,CpreRegP.Value,dampRatio);
+        end
+
+        % Update solution vector (if Dirichlet values contained in X, otherwise X=0 and X=X+U=U);
+        U=U+X;
+
         %---------------------------------------------------------------------
         % Store the solution at each frequency
         %---------------------------------------------------------------------

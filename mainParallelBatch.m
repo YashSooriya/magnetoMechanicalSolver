@@ -77,7 +77,7 @@ couple           = 0;          % Solve coupled (1) or decoupled (0) problem
 SplitMech        = 0;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
 StaticMechanics  = 1;          % Run (1) or not (0) the static solver for the mechanical field (Only on if magnetic material)
 Non0Dir          = 1;          % Consider non-zero Dirichlet values (1) or not (0)
-freqSweep        = 1;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
+freqSweep        = 0;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
                                % Only necessary for non zero Dirichlet BC
 % Post processing flags
 offlineOnly      = 0;          % Only calculate the offline stage, skip the online (only for POD ROM)

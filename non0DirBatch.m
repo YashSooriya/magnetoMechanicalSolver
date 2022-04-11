@@ -6,7 +6,7 @@ orderEM = 1;            % Set polynomial order of the H(curl) basis functions
 orderMech = 1;          % Set polynomial order of the H^1 basis functions
 Ns = 90;                % Set number of snapshots desired
 axis = 'z';             % Set non-zero dirichlett direction (x,y,z)
-dampRatio = 0;          % Set damping ratio
+dampRatio = 2e-3;          % Set damping ratio
 Ncores = 8;             % Set number of cores to assign to problem in parallel solver
 
 
@@ -19,7 +19,7 @@ disp_inc = 0.02;        % Set increment steps (in metres)
 disp_spec = ([0 0.0005 0.001 0.005 0.02 0.08 0.1]);     % Set specified displacement values
 
 
-readMesh = 1;           % Initialise readMesh as 1
+readMesh = 0;           % Initialise readMesh as 1
 
 if solver == 1
     if disp_even == 0
