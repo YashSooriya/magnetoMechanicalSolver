@@ -331,7 +331,7 @@ if fieldCalc==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/powerEnergy/',currDate,'/'];
     mkdir(folder)
-    writestruct(Options,[folder,'Options.xml'])
+    writetable(struct2table(Options), 'Options.txt')
     saveFile=[folder,'FrequencySweepMHIGradXPowerEnergy'];
     save(saveFile,'IntegratedFields');
     disp(['Saved to ', saveFile])
@@ -347,7 +347,7 @@ if normA==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/normA/',currDate,'/'];
     mkdir(folder)
-    writestruct(Options,[folder,'Options.xml'])
+    writetable(struct2table(Options), 'Options.txt')
     saveFile=[folder,'FrequencySweepMHIGradXNormA'];
     save(saveFile,'IntegratedNormA');
     disp(['Saved to ', saveFile])
@@ -364,7 +364,7 @@ if normCurlA==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/normCurlA/',currDate,'/'];
     mkdir(folder)
-    writestruct(Options,[folder,'Options.xml'])
+    writetable(struct2table(Options), 'Options.txt')
     saveFile=[folder,'FrequencySweepMHIGradXNormCurlA'];
     save(saveFile,'IntegratedNormCurlA');
     disp(['Saved to ', saveFile])
