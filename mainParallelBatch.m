@@ -1,4 +1,4 @@
-function mainParallelBatch(N_s, dirDisp, dampRatio, orderEM, orderMech, Ncores, ReadMesh)
+function mainParallelBatch(N_s, dirDisp, dampRatio, orderEM, orderMech, Ncores, ReadMesh, dir_DC)
  
 delete(gcp('nocreate'))
 
@@ -266,6 +266,10 @@ Toc(8) = toc(ticInit);
 %=======================================================================================================================================
 % Start the timer
 
+if dir_DC == 0
+    Options.dirDisp=[0 0 0];
+end
+
 % Static Solver
 [Static,UnknownStatic]=staticSolver(Mesh,Basis,Quadrature,ProblemData,Options);
 % Source mapping to compute JAC in terms of a vector potential
@@ -280,7 +284,7 @@ Toc(9) = toc(ticInit);
 
 currDate = strrep(datestr(datetime), ':','_');
 folder = ['data/staticData/',currDate,'/'];
-folderTemp = ['temp/'];
+folderTemp = 'temp/';
 mkdir(folder)
 writetable(struct2table(Options),[folder,'Options.txt'])
 saveFile=[folder,'postStaticSolverData'];
@@ -288,6 +292,8 @@ saveFileTemp=[folderTemp,'postStaticSolverData'];
 save(saveFile);
 save(saveFileTemp);
 disp(['Saved to ', saveFile])
+
+Options.dirDisp=dirDisp;
 
 % Dynamic Solver (Frequency domain)
 if POD==1

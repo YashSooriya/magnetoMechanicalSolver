@@ -1,4 +1,4 @@
-function [Dynamic]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,Damp,dampRatio,CondFactorOut,CondFactorChoice)
+function [Dynamic, Toc]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,Damp,dampRatio,CondFactorOut,CondFactorChoice, ticInit, Toc)
 % Function used to initialise the linearised solver of the coupled equation
 % set
 
@@ -64,6 +64,7 @@ else
     X=zeros(nTotal,1);
 end
 
+Toc(10) = toc(ticInit);
 
 %=========================================================================
 % System assembly
@@ -80,6 +81,8 @@ else
     %Resid=Res;
 end
 
+Toc(11) = toc(ticInit);
+
 % Legacy code note that X has only 1 column and so this will not work.
 % if freqSweep==1
 %     dirDOF=lenEM+[(1:ndirEM) ndirEM+lenM+(1:ndirMech)];
@@ -95,6 +98,7 @@ end
 Dynamic = zeros(nTotal,nCond*length(freqOut));
 % Initialize counter
 count=0;
+toccount=12;
 for i=1:nCond
     C=CondFactorOut(i,1)*Ccond{1};
     Cpre=CondFactorOut(i,1)*Ccondpre{1};
@@ -163,7 +167,11 @@ for i=1:nCond
         %---------------------------------------------------------------------
         
         Dynamic(:,count)= U;
-        
+
+        Toc(toccount) = toc(ticInit);
+        toccount = toccount + 1;
+
+
     end
 end
 

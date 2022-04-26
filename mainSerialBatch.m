@@ -1,4 +1,4 @@
-function mainSerialBatch(layers, neurons, N_s, dirDisp, dampRatio, orderEM, orderMech, ReadMesh)
+function mainSerialBatch(layers, neurons, N_s, dirDisp, dampRatio, orderEM, orderMech, ReadMesh, dir_DC)
  
 %Describing conductivities for each of the shields. Rows as many
 %conductivity factors you wish to consider, and columns for as many
@@ -6,8 +6,8 @@ function mainSerialBatch(layers, neurons, N_s, dirDisp, dampRatio, orderEM, orde
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
-chooseSample = "marcos";
-chooseOut = "marcos";
+chooseSample = "evenly spaced";
+chooseOut = "evenly spaced";
 dampChoice = num2str(dampRatio,'%.e');
 nModes = 20;
 
@@ -29,10 +29,10 @@ end
 
 if chooseOut == "marcos"
     del_fout = 10;
-    N_o = 499;
+    N_o = 5;
     freqOut = linspace(15,15+(N_o-1)*del_fout, N_o);
 elseif chooseOut == "evenly spaced"
-    N_o = 40;
+    N_o = 5;
     freqOut = linspace(15, 5000, N_o);
 elseif chooseOut == "single"
     freqOut = 500;
@@ -136,6 +136,8 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';    % File name for SVD mat fi
 % Problem Definition
 %-------------------------------------------------------------------------
 
+ticInit = tic;
+
 % Define string with problem file name
 problem='ToyNon0';
 
@@ -154,6 +156,8 @@ ProblemData.non0=dirDisp;
 ProblemData.order = orderEM;
 ProblemData.orderH1 = orderMech;
 MaxOrder=max(orderEM,ProblemData.orderH1);
+
+Toc(1) = toc(ticInit);
 
 %-------------------------------------------------------------------------
 % Read mesh
@@ -192,6 +196,8 @@ end
 % Define size of elemental arrays for H(curl) and H^1 spaces
 [ProblemData]=GetSizeArrays(ProblemData,Mesh);
 
+Toc(2) = toc(ticInit);
+
 %-------------------------------------------------------------------------
 % Extra mesh data
 %-------------------------------------------------------------------------
@@ -210,6 +216,8 @@ disp('Completed face numbering')
 % Extract local mesh for the mechanical problem
 [Mesh.mech]=localMesh(Mesh,ProblemData,2);
 
+Toc(3) = toc(ticInit);
+
 %========================================================================
 % Compute properties of the numerical integration in reference element
 %========================================================================
@@ -224,6 +232,8 @@ disp('Completed face numbering')
 display(['Program using orders q = ',num2str(ProblemData.order),' p = ',num2str(ProblemData.orderH1)]);
 display(['Size of elemental arrays = ',num2str(ProblemData.esizet)]);
 
+Toc(4) = toc(ticInit);
+
 %--------------------------------------------------------------------------
 % Gaussian Quadrature
 %--------------------------------------------------------------------------
@@ -232,16 +242,23 @@ nip=ceil((2*MaxOrder+1)/2);
 
 % Compute the integration weigths and locations on reference element
 [Quadrature]=gautri(nip);
+
+Toc(5) = toc(ticInit);
+
 %--------------------------------------------------------------------------
 % Basis Functions
 %--------------------------------------------------------------------------
 % Evaluate basis functions at integration points
 [Basis]= evalBasis(Quadrature,ProblemData);
 
+Toc(6) = toc(ticInit);
+
 %==========================================================================
 % Compute the system unknowns of the individual physics types
 %==========================================================================
 [Unknown]=elementUnknownNumbering(Mesh,ProblemData,SplitMech);
+
+Toc(7) = toc(ticInit);
 
 %==========================================================================
 % Store program options in the options data structure
@@ -301,11 +318,18 @@ Options.ffnTestRatio=ffnTestRatio;
 Options.ffnMinGrad=ffnMinGrad;
 Options.ffnEpochs=ffnEpochs;
 Options.dirDisp=dirDisp;
+
+Toc(8) = toc(ticInit);
+
 %=======================================================================================================================================
 % Coupled Problem solver
 %=======================================================================================================================================
 % Start the timer
 tic
+
+if dir_DC == 0
+    Options.dirDisp=[0 0 0];
+end
 
 % Static Solver
 [Static,UnknownStatic]=staticSolver(Mesh,Basis,Quadrature,ProblemData,Options);
@@ -317,6 +341,10 @@ else
     UnknownCurrent=UnknownStatic;
 end
 
+Toc(9) = toc(ticInit);
+
+Options.dirDisp=dirDisp;
+
 % Dynamic Solver (Frequency domain)
 if POD==1
     if PODP==1
@@ -325,9 +353,10 @@ if POD==1
      [Dynamic]=frequencySolverPODISerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes);
     end
 else
-[Dynamic]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice);
+[Dynamic, Toc]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice, ticInit, Toc);
 end
 
+% Toc(10) = toc(ticInit);
 
 %==========================================================================
 % Post processing
@@ -340,6 +369,8 @@ if  linePlotOn==1
     % Line Plots
     myplot3(Mesh,Unknown,ProblemData,Dynamic(:,1),problem,0,freqRange)
 end
+
+% Toc(11) = toc(ticInit);
 
 %=========================================================================
 % ParaView (3D plots)
@@ -355,6 +386,9 @@ if paraview==1
     % 3D plots for the static solution (Paraview)
     pointvalue_multi(Mesh,UnknownStatic,ProblemData,solStatic,1,freqOut);
 end
+
+% Toc(12) = toc(ticInit);
+
 %==========================================================================
 
 
@@ -372,6 +406,9 @@ if errorsOn==1
         [hcurlerr(j),DisplacementNorm(j)] =ErrorDynamic(Mesh,Unknown,Basis,Quadrature,sol,ProblemData,0,freq);
     end
 end
+
+% Toc(13) = toc(ticInit);
+
 %=========================================================================
 
 %=========================================================================
@@ -388,6 +425,9 @@ if fieldCalc==1
     save(saveFile,'IntegratedFields');
     disp(['Saved to ', saveFile])
 end
+
+% Toc(14) = toc(ticInit);
+
 %=========================================================================
 
 %=========================================================================
@@ -405,6 +445,9 @@ if normA==1
     save(saveFile,'IntegratedNormA');
     disp(['Saved to ', saveFile])
 end
+
+% Toc(15) = toc(ticInit);
+
 %=========================================================================
 
 %=========================================================================
@@ -424,6 +467,7 @@ if normCurlA==1
 end
 %=========================================================================
 
+% Toc(16) = toc(ticInit);
 
 %=========================================================================
 % Compute error of POD solution with respect to full order (e_2)
@@ -455,4 +499,10 @@ fileName=sprintf('ErrorPODCase1');
 save(fileName,'ErrorPOD','ErrorPODEM','ErrorPODMech');
 end
 
-toc
+% Toc(18) = toc(ticInit);
+
+Toc = Toc.';
+currDate = strrep(datestr(datetime), ':','_');
+folder = ['data/runTime/',currDate,'/'];
+mkdir(folder)
+writematrix(Toc, [folder,'ticktoc.csv'])
