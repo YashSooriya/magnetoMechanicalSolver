@@ -5,8 +5,8 @@ delete(gcp('nocreate'))
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
-chooseSample = "marcos";
-chooseOut = "marcos";
+chooseSample = "evenly spaced";
+chooseOut = "evenly spaced";
 dampChoice = num2str(dampRatio,'%.e');
 nModes = 20;
 
@@ -31,7 +31,7 @@ if chooseOut == "marcos"
     N_o = 499;
     freqOut = linspace(15,15+(N_o-1)*del_fout, N_o);
 elseif chooseOut == "evenly spaced"
-    N_o = 40;
+    N_o = 10;
     freqOut = linspace(15, 5000, N_o);
 elseif chooseOut == "single"
     freqOut = 1000;
@@ -73,8 +73,8 @@ PODP             = 0;          % Use PODP (1) or PODI(0). Note PODI has been imp
 Offline          = 0;          % Compute off-line POD stage (1) or load existing data from file (0)
 SourceMapping    = 0;          % Map current to solenoidal space (1) or not (0) (Required for transversal coils)
 Assemble         = 1;          % Assemble system matrices (1) or load assembled matrices from file
-couple           = 0;          % Solve coupled (1) or decoupled (0) problem
-SplitMech        = 0;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
+couple           = 1;          % Solve coupled (1) or decoupled (0) problem
+SplitMech        = 1;          % Split the mechanical problem in three separated problems for the OVC, 77K and 4K (customised for these problems)
 StaticMechanics  = 1;          % Run (1) or not (0) the static solver for the mechanical field (Only on if magnetic material)
 Non0Dir          = 1;          % Consider non-zero Dirichlet values (1) or not (0)
 freqSweep        = 0;          % Assemble Dirichlet DOF using frequency sweep method (requires a lot of memory for large problems)
@@ -101,6 +101,8 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';% File name for SVD mat file
 % Problem Definition
 %-------------------------------------------------------------------------
 
+ticInit = tic;
+
 % Define string with problem file name
 %problem= 'MHIGradXSplitNewCoil';
 problem='ToyNon0';
@@ -119,6 +121,8 @@ ProblemData.non0=dirDisp;
 ProblemData.order = orderEM;
 ProblemData.orderH1 = orderMech;
 MaxOrder=max(orderEM,ProblemData.orderH1);
+
+Toc(1) = toc(ticInit);
 
 %-------------------------------------------------------------------------
 % Read mesh
@@ -157,6 +161,8 @@ end
 % Define size of elemental arrays for H(curl) and H^1 spaces
 [ProblemData]=GetSizeArrays(ProblemData,Mesh);
 
+Toc(2) = toc(ticInit);
+
 %-------------------------------------------------------------------------
 % Extra mesh data
 %-------------------------------------------------------------------------
@@ -175,6 +181,8 @@ disp('Completed face numbering')
 % Extract local mesh for the mechanical problem
 [Mesh.mech]=localMesh(Mesh,ProblemData,2);
 
+Toc(3) = toc(ticInit);
+
 %========================================================================
 % Compute properties of the numerical integration in reference element
 %========================================================================
@@ -189,6 +197,8 @@ disp('Completed face numbering')
 display(['Program using orders q = ',num2str(ProblemData.order),' p = ',num2str(ProblemData.orderH1)]);
 display(['Size of elemental arrays = ',num2str(ProblemData.esizet)]);
 
+Toc(4) = toc(ticInit);
+
 %--------------------------------------------------------------------------
 % Gaussian Quadrature
 %--------------------------------------------------------------------------
@@ -197,16 +207,23 @@ nip=ceil((2*MaxOrder+1)/2);
 
 % Compute the integration weigths and locations on reference element
 [Quadrature]=gautri(nip);
+
+Toc(5) = toc(ticInit);
+
 %--------------------------------------------------------------------------
 % Basis Functions
 %--------------------------------------------------------------------------
 % Evaluate basis functions at integration points
 [Basis]= evalBasis(Quadrature,ProblemData);
 
+Toc(6) = toc(ticInit);
+
 %==========================================================================
 % Compute the system unknowns of the individual physics types
 %==========================================================================
 [Unknown]=elementUnknownNumbering(Mesh,ProblemData,SplitMech);
+
+Toc(7) = toc(ticInit);
 
 %==========================================================================
 % Store program options in the options data structure
@@ -241,11 +258,13 @@ Options.normA=normA;
 Options.svdSave=svdSave;
 Options.svdSaveName=svdSaveName;
 Options.dirDisp=dirDisp;
+
+Toc(8) = toc(ticInit);
+
 %=======================================================================================================================================
 % Coupled Problem solver
 %=======================================================================================================================================
 % Start the timer
-tic
 
 % Static Solver
 [Static,UnknownStatic]=staticSolver(Mesh,Basis,Quadrature,ProblemData,Options);
@@ -256,6 +275,19 @@ else
     StaticCurrent=Static;
     UnknownCurrent=UnknownStatic;
 end
+
+Toc(9) = toc(ticInit);
+
+currDate = strrep(datestr(datetime), ':','_');
+folder = ['data/staticData/',currDate,'/'];
+folderTemp = ['temp/'];
+mkdir(folder)
+writetable(struct2table(Options),[folder,'Options.txt'])
+saveFile=[folder,'postStaticSolverData'];
+saveFileTemp=[folderTemp,'postStaticSolverData'];
+save(saveFile);
+save(saveFileTemp);
+disp(['Saved to ', saveFile])
 
 % Dynamic Solver (Frequency domain)
 if POD==1
@@ -268,6 +300,7 @@ else
     [Dynamic]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores);
 end
 
+Toc(10) = toc(ticInit);
 
 %==========================================================================
 % Post processing
@@ -280,6 +313,8 @@ if  linePlotOn==1
     % Line Plots
     myplot3(Mesh,Unknown,ProblemData,Dynamic(:,1),problem,0,freqRange)
 end
+
+Toc(11) = toc(ticInit);
 
 %=========================================================================
 % ParaView (3D plots)
@@ -295,6 +330,9 @@ if paraview==1
     % 3D plots for the static solution (Paraview)
     pointvalue_multi(Mesh,UnknownStatic,ProblemData,solStatic,1,freqOut);
 end
+
+Toc(12) = toc(ticInit);
+
 %==========================================================================
 
 
@@ -312,6 +350,9 @@ if errorsOn==1
         [hcurlerr(j),DisplacementNorm(j)] =ErrorDynamic(Mesh,Unknown,Basis,Quadrature,sol,ProblemData,0,freq);
     end
 end
+
+Toc(13) = toc(ticInit);
+
 %=========================================================================
 
 %=========================================================================
@@ -323,11 +364,13 @@ if fieldCalc==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/powerEnergy/',currDate,'/'];
     mkdir(folder)
-    writetable(struct2table(Options), 'Options.txt')
+    writetable(struct2table(Options),[folder,'Options.txt'])
     saveFile=[folder,'FrequencySweepMHIGradXPowerEnergy'];
     save(saveFile,'IntegratedFields');
     disp(['Saved to ', saveFile])
 end
+
+Toc(14) = toc(ticInit);
 
 %=========================================================================
 % Compute the Norm of A field
@@ -339,11 +382,14 @@ if normA==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/normA/',currDate,'/'];
     mkdir(folder)
-    writetable(struct2table(Options), 'Options.txt')
+    writetable(struct2table(Options),[folder,'Options.txt'])
     saveFile=[folder,'FrequencySweepMHIGradXNormA'];
     save(saveFile,'IntegratedNormA');
     disp(['Saved to ', saveFile])
 end
+
+Toc(15) = toc(ticInit);
+
 %=========================================================================
 
 %=========================================================================
@@ -356,11 +402,14 @@ if normCurlA==1
     currDate = strrep(datestr(datetime), ':','_');
     folder = ['data/normCurlA/',currDate,'/'];
     mkdir(folder)
-    writetable(struct2table(Options), 'Options.txt')
+    writetable(struct2table(Options),[folder,'Options.txt'])
     saveFile=[folder,'FrequencySweepMHIGradXNormCurlA'];
     save(saveFile,'IntegratedNormCurlA');
     disp(['Saved to ', saveFile])
 end
+
+Toc(16) = toc(ticInit);
+
 %=========================================================================
 
 %=========================================================================
@@ -371,6 +420,8 @@ if normA==1
     fileName=sprintf('FrequencySweepParallelFullTestNormA%dto%dHz_damp%s_q%d_p%d_CondFactor%sOVCNS',freqOut(1),freqOut(length(freqOut)),dampChoice,orderEM,orderMech,CondFactorChoice);
     save(fileName,'IntegratedNormA');
 end
+
+Toc(17) = toc(ticInit);
 
 %=========================================================================
 % Compute error of POD solution with respect to full order (e_2)
@@ -401,7 +452,12 @@ end
 fileName=sprintf('ErrorPODCase1');
 save(fileName,'ErrorPOD','ErrorPODEM','ErrorPODMech');
 end
-        
+
+Toc(18) = toc(ticInit);
 
 
-  toc
+Toc = Toc.';
+currDate = strrep(datestr(datetime), ':','_');
+folder = ['data/runTime/',currDate,'/'];
+mkdir(folder)
+writematrix(Toc, [folder,'ticktoc.csv'])
