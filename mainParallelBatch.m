@@ -1,4 +1,4 @@
-function mainParallelBatch(N_s, dirDisp, dampRatio, orderEM, orderMech, Ncores, ReadMesh, dir_DC)
+function mainParallelBatch(N_s, dirDisp, dampRatio, orderEM, orderMech, Ncores, ReadMesh, dir_DC, refined, POIs, range, refinedDelFOut)
  
 delete(gcp('nocreate'))
 
@@ -38,6 +38,44 @@ elseif chooseOut == "single"
 elseif chooseOut == "snapshots"
     freqOut = freqSample;
 end
+
+if refined == 1
+    indexPOI = zeros(1,length(POIs));
+    POIrangeInd = zeros(1,length(POIs)*2);
+
+    for i = 1:length(POIs)
+        indexPOI(i) = round(interp1(freqOut,1:numel(freqOut),POIs(i)));
+    end
+
+    count = 1;
+
+    for ii = 1:2:(2*length(POIs))
+        POIrangeInd(ii) = round(indexPOI(count) - (range/del_fout));
+        POIrangeInd(ii+1) = round(indexPOI(count) + (range/del_fout));
+        count = count + 1;
+    end
+
+    refinedOut = [];
+    buildInd = [1 POIrangeInd length(freqOut)];
+
+    for iii = 1:(2*length(POIs)+1)
+        if rem(iii,2) == 0 
+            firstEl = buildInd(iii);
+            lastEl = buildInd(iii+1)-1;
+            tempVec = freqOut(firstEl):refinedDelFOut:freqOut(lastEl);
+            refinedOut = [refinedOut tempVec]; 
+        else
+            firstEl = buildInd(iii);
+            lastEl = buildInd(iii+1)-1;
+            tempVec = freqOut(firstEl:lastEl);
+            refinedOut = [refinedOut tempVec];        
+        end
+
+    end
+    freqOut = refinedOut;
+else
+end
+
 
 %====================================================================================================================================================
 % Main script used to run the coupled solver (parallel version)
