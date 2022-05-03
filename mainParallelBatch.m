@@ -5,8 +5,8 @@ delete(gcp('nocreate'))
 CondFactorSample = [1 1 1];
 CondFactorOut = [1 1 1];
 CondFactorChoice = 'default';
-chooseSample = "evenly spaced";
-chooseOut = "evenly spaced";
+chooseSample = "marcos";
+chooseOut = "marcos";
 dampChoice = num2str(dampRatio,'%.e');
 nModes = 20;
 
@@ -102,6 +102,7 @@ svdSaveName      = 'SVDResult_Ns40_m20_105hz.mat';% File name for SVD mat file
 %-------------------------------------------------------------------------
 
 ticInit = tic;
+toccount = 1;
 
 % Define string with problem file name
 %problem= 'MHIGradXSplitNewCoil';
@@ -122,7 +123,8 @@ ProblemData.order = orderEM;
 ProblemData.orderH1 = orderMech;
 MaxOrder=max(orderEM,ProblemData.orderH1);
 
-Toc(1) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %-------------------------------------------------------------------------
 % Read mesh
@@ -161,7 +163,8 @@ end
 % Define size of elemental arrays for H(curl) and H^1 spaces
 [ProblemData]=GetSizeArrays(ProblemData,Mesh);
 
-Toc(2) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %-------------------------------------------------------------------------
 % Extra mesh data
@@ -181,7 +184,8 @@ disp('Completed face numbering')
 % Extract local mesh for the mechanical problem
 [Mesh.mech]=localMesh(Mesh,ProblemData,2);
 
-Toc(3) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %========================================================================
 % Compute properties of the numerical integration in reference element
@@ -197,7 +201,8 @@ Toc(3) = toc(ticInit);
 display(['Program using orders q = ',num2str(ProblemData.order),' p = ',num2str(ProblemData.orderH1)]);
 display(['Size of elemental arrays = ',num2str(ProblemData.esizet)]);
 
-Toc(4) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %--------------------------------------------------------------------------
 % Gaussian Quadrature
@@ -208,7 +213,8 @@ nip=ceil((2*MaxOrder+1)/2);
 % Compute the integration weigths and locations on reference element
 [Quadrature]=gautri(nip);
 
-Toc(5) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %--------------------------------------------------------------------------
 % Basis Functions
@@ -216,14 +222,16 @@ Toc(5) = toc(ticInit);
 % Evaluate basis functions at integration points
 [Basis]= evalBasis(Quadrature,ProblemData);
 
-Toc(6) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %==========================================================================
 % Compute the system unknowns of the individual physics types
 %==========================================================================
 [Unknown]=elementUnknownNumbering(Mesh,ProblemData,SplitMech);
 
-Toc(7) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %==========================================================================
 % Store program options in the options data structure
@@ -259,7 +267,8 @@ Options.svdSave=svdSave;
 Options.svdSaveName=svdSaveName;
 Options.dirDisp=dirDisp;
 
-Toc(8) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=======================================================================================================================================
 % Coupled Problem solver
@@ -280,7 +289,8 @@ else
     UnknownCurrent=UnknownStatic;
 end
 
-Toc(9) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 currDate = strrep(datestr(datetime), ':','_');
 folder = ['data/staticData/',currDate,'/'];
@@ -303,10 +313,11 @@ if POD==1
         [Dynamic]=frequencySolverPODIParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes,Ncores);
     end
 else
-    [Dynamic]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores);
+    [Dynamic, Toc, toccount]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores, ticInit, Toc, toccount);
 end
 
-Toc(10) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %==========================================================================
 % Post processing
@@ -320,7 +331,8 @@ if  linePlotOn==1
     myplot3(Mesh,Unknown,ProblemData,Dynamic(:,1),problem,0,freqRange)
 end
 
-Toc(11) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % ParaView (3D plots)
@@ -337,7 +349,8 @@ if paraview==1
     pointvalue_multi(Mesh,UnknownStatic,ProblemData,solStatic,1,freqOut);
 end
 
-Toc(12) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %==========================================================================
 
@@ -357,7 +370,8 @@ if errorsOn==1
     end
 end
 
-Toc(13) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 
@@ -376,7 +390,8 @@ if fieldCalc==1
     disp(['Saved to ', saveFile])
 end
 
-Toc(14) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % Compute the Norm of A field
@@ -394,7 +409,8 @@ if normA==1
     disp(['Saved to ', saveFile])
 end
 
-Toc(15) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 
@@ -414,7 +430,8 @@ if normCurlA==1
     disp(['Saved to ', saveFile])
 end
 
-Toc(16) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 
@@ -427,7 +444,8 @@ if normA==1
     save(fileName,'IntegratedNormA');
 end
 
-Toc(17) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % Compute error of POD solution with respect to full order (e_2)
@@ -459,8 +477,7 @@ fileName=sprintf('ErrorPODCase1');
 save(fileName,'ErrorPOD','ErrorPODEM','ErrorPODMech');
 end
 
-Toc(18) = toc(ticInit);
-
+Toc(toccount) = toc(ticInit);
 
 Toc = Toc.';
 currDate = strrep(datestr(datetime), ':','_');

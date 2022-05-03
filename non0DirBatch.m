@@ -8,6 +8,7 @@ Ns = 90;                    % Set number of snapshots desired
 axis = 'z';                 % Set non-zero dirichlett direction (x,y,z)
 dampRatio = 0;              % Set damping ratio
 Ncores = 8;                 % Set number of cores to assign to problem in parallel solver
+singleStatic = 1;           % Set if static solver is only used once (1) or not (0)
 
 disp_even = 0;              % Use even displacement distribution (1) or specified displacements (0)
 
@@ -15,8 +16,9 @@ disp_min = 0;               % Set starting displacement value (in metres)
 disp_max = 0.1;             % Set final displacement value (in metres)
 disp_inc = 0.02;            % Set increment steps (in metres)
 
-dir_DC = 0;                 % Set if Dirichlett displacement should be non-zero (1) or not (0) for DC solver
-disp_spec = ([0.01]);       % Set specified displacement values
+disp_spec = ([0 0.001]);       % Set specified displacement values
+
+dir_DC = 1;                 % Set if Dirichlett displacement should be non-zero (1) or not (0) for DC solver
 
 readMesh = 0;               % Initialise readMesh as 1
 
@@ -24,22 +26,26 @@ if solver == 1
     if disp_even == 0
         for i = 1:length(disp_spec)
             if axis == 'x'
-                if i == 1
-                    mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
+                if singleStatic == 1
+                    if i == 1
+                        mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
+                    else
+                        postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech)
+                    end
                 else
-                    postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, dir_DC)
+                    mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
                 end
             elseif axis == 'y'
                 if i == 1
                     mainParallelBatch(Ns,[0, disp_spec(i), 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
                 else
-                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech, dir_DC)
+                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech)
                 end
             elseif axis == 'z'
                 if i == 1
                     mainParallelBatch(Ns,[0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
                 else
-                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, dir_DC)
+                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech)
                 end
             else
                 disp('Axis for non-0 dir has been defined incorrectly')
@@ -51,19 +57,19 @@ if solver == 1
                 if i == 1
                     mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
                 else
-                    postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, dir_DC)
+                    postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech)
                 end
             elseif axis == 'y'
                 if i == 1
                     mainParallelBatch(Ns,[0, disp_spec(i), 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
                 else
-                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech, dir_DC)
+                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech)
                 end
             elseif axis == 'z'
                 if i == 1
                     mainParallelBatch(Ns,[0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC)
                 else
-                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, dir_DC)
+                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech)
                 end
             else
                 disp('Axis for non-0 dir has been defined incorrectly')

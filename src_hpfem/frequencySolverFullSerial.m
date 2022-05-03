@@ -1,4 +1,4 @@
-function [Dynamic, Toc]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,Damp,dampRatio,CondFactorOut,CondFactorChoice, ticInit, Toc)
+function [Dynamic, Toc, toccount]=frequencySolverFullSerial(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,Damp,dampRatio,CondFactorOut,CondFactorChoice, ticInit, Toc)
 % Function used to initialise the linearised solver of the coupled equation
 % set
 
@@ -98,7 +98,6 @@ Toc(11) = toc(ticInit);
 Dynamic = zeros(nTotal,nCond*length(freqOut));
 % Initialize counter
 count=0;
-toccount=12;
 for i=1:nCond
     C=CondFactorOut(i,1)*Ccond{1};
     Cpre=CondFactorOut(i,1)*Ccondpre{1};

@@ -1,4 +1,4 @@
-function [Dynamic]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,Damp,dampRatio,CondFactorOut,CondFactorChoice,Ncores)
+function [Dynamic, Toc, toccount]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,Damp,dampRatio,CondFactorOut,CondFactorChoice,Ncores, ticInit, Toc, toccount)
 % Function used to initialise the linearised solver of the coupled equation
 % set
 
@@ -20,6 +20,8 @@ M      = [];
 CReg   = [];
 K      = [];
 
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % Solve the transient fields
@@ -39,6 +41,9 @@ nTotal=ndirEM+ndirMech+lenEM+lenM;
 
 % Store exact spase matrix vectors size in Unknown structure
 Unknown.system.nSparse=Static.nSparse;
+
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %-------------------------------------------------------------------------
 % Frequency sweep
@@ -64,6 +69,8 @@ else
     X=zeros(nTotal,1);
 end
 
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % System assembly
@@ -93,7 +100,9 @@ end
 % Initialize the solution matrix
 DynamicTotal=cell(nCond);
 
-    
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;    
+parToc = zeros(1,length(freqOut));
 
 % Start parallel pool
 parpool(Ncores)
@@ -103,6 +112,10 @@ KP=parallel.pool.Constant(K);
 ResidP=parallel.pool.Constant(Resid_fixed);
 CRegP=parallel.pool.Constant(CReg);
 CpreRegP=parallel.pool.Constant(CpreReg);
+
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
+
 for i=1:nCond
     Dynamic=zeros(nTotal,length(freqOut));
     C=CondFactorOut(i,1)*Ccond{1};
@@ -122,6 +135,10 @@ for i=1:nCond
 
     CP=parallel.pool.Constant(C);
     CpreP=parallel.pool.Constant(Cpre);
+
+    Toc(toccount) = toc(ticInit);
+    toccount = toccount + 1;
+
     parfor j=1:length(freqOut)
         % Define angular frequency (rad/s) from frequency (Hz)
         freq=freqOut(j);
@@ -174,10 +191,20 @@ for i=1:nCond
         %---------------------------------------------------------------------
         
         Dynamic(:,j)= U;
-        
+
     end
+
     DynamicTotal{i}=Dynamic;
 end
+
+freqToc = toc(ticInit) - Toc(toccount - 1);
+freqTocMean = freqToc / length(freqOut);
+
+for ii = 1:length(freqOut)
+    Toc(toccount) = Toc(toccount - 1) + freqTocMean;
+    toccount = toccount + 1;
+end
+
 % Rearrange solution into matrix
 Dynamic=zeros(nTotal,nCond*length(freqOut));
 for i=1:nCond

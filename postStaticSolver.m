@@ -7,6 +7,11 @@ load('temp/postStaticSolverData.mat');
 ProblemData.non0=dirDispNew;
 Options.dirDisp=dirDispNew;
 
+
+ticInit = tic;
+toccount = 1;
+Toc = [];
+
 % Dynamic Solver (Frequency domain)
 if POD==1
     if PODP==1
@@ -15,10 +20,11 @@ if POD==1
         [Dynamic]=frequencySolverPODIParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,CondFactorSample,freqSample,nModes,Ncores);
     end
 else
-    [Dynamic]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores);
+    [Dynamic, Toc, toccount]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores, ticInit, Toc, toccount);
 end
 
-Toc(10) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %==========================================================================
 % Post processing
@@ -32,7 +38,8 @@ if  linePlotOn==1
     myplot3(Mesh,Unknown,ProblemData,Dynamic(:,1),problem,0,freqRange)
 end
 
-Toc(11) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % ParaView (3D plots)
@@ -49,7 +56,8 @@ if paraview==1
     pointvalue_multi(Mesh,UnknownStatic,ProblemData,solStatic,1,freqOut);
 end
 
-Toc(12) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %==========================================================================
 
@@ -69,14 +77,15 @@ if errorsOn==1
     end
 end
 
-Toc(13) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 
 %=========================================================================
 % Compute dissipated power and kinetic Energy
 %=========================================================================
-if fieldCalc==1
+    if fieldCalc==1
     disp('Calcuating Power and Energy ...')
     [IntegratedFields]= PowerAndEnergyComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
     currDate = strrep(datestr(datetime), ':','_');
@@ -88,7 +97,8 @@ if fieldCalc==1
     disp(['Saved to ', saveFile])
 end
 
-Toc(14) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % Compute the Norm of A field
@@ -106,7 +116,8 @@ if normA==1
     disp(['Saved to ', saveFile])
 end
 
-Toc(15) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 
@@ -126,7 +137,8 @@ if normCurlA==1
     disp(['Saved to ', saveFile])
 end
 
-Toc(16) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 
@@ -139,7 +151,8 @@ if normA==1
     save(fileName,'IntegratedNormA');
 end
 
-Toc(17) = toc(ticInit);
+Toc(toccount) = toc(ticInit);
+toccount = toccount + 1;
 
 %=========================================================================
 % Compute error of POD solution with respect to full order (e_2)
@@ -171,11 +184,10 @@ fileName=sprintf('ErrorPODCase1');
 save(fileName,'ErrorPOD','ErrorPODEM','ErrorPODMech');
 end
 
-Toc(18) = toc(ticInit);
-
+Toc(toccount) = toc(ticInit);
 
 Toc = Toc.';
 currDate = strrep(datestr(datetime), ':','_');
-folder = ['runTime/',currDate,'/'];
+folder = ['data/runTime/',currDate,'/'];
 mkdir(folder)
 writematrix(Toc, [folder,'ticktoc.csv'])
