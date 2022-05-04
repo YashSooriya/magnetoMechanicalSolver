@@ -521,4 +521,4 @@ Toc = Toc.';
 currDate = strrep(datestr(datetime), ':','_');
 folder = ['data/runTime/',currDate,'/'];
 mkdir(folder)
-writematrix(Toc, [folder,'ticktoc.csv'])
+writetable(array2table(Toc),[folder,'ticktoc.csv'])
