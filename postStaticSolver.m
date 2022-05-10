@@ -23,6 +23,14 @@ else
     [Dynamic, Toc, toccount]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores, ticInit, Toc, toccount);
 end
 
+currDate = strrep(datestr(datetime), ':','_');
+folder = ['data/dynamicData/',currDate,'/'];
+mkdir(folder)
+writetable(struct2table(Options),[folder,'Options.txt'])
+saveFile=[folder,'postStaticSolverData'];
+save(saveFile);
+disp(['Saved to ', saveFile])
+
 Toc(toccount) = toc(ticInit);
 toccount = toccount + 1;
 

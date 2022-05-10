@@ -1,5 +1,6 @@
-function [OutPower4K,OutPower77K,OutPowerOVC] = PowerCalculationStaggeredMRI(Mesh,Unknown,Basis,Quadrature,...
-    sol,ProblemData,freq,UnknownStatic,solStatic,condOVC,cond77K,cond4K,Dynamic,freqOut)
+function [OutPower4Kfull,OutPower77Kfull,OutPowerOVCfull] = PowerCalculationStaggeredMRIfull(Mesh,Unknown,Basis,Quadrature,...
+    ProblemData,UnknownStatic,solStatic,condOVC,cond77K,cond4K,Dynamic,freqOut)
+
 
 % Extract relevant data from mesh structure
 nelem=Mesh.Nelements;
@@ -54,20 +55,15 @@ nip=Quadrature.nip;
 lec = zeros(6,gorder,3);
 lfc = zeros(4,(gorder*(gorder-1)/2),3);
 
-OutPower4K=0;
-OutPower77K=0;
-OutPowerOVC=0;
-
-%OutPower4Kfull=zeros(length(freqOut),1);
-%OutPower77Kfull=zeros(length(freqOut),1);
-%OutPowerOVCfull=zeros(length(freqOut),1);
+OutPower4Kfull=zeros(length(freqOut),1);
+OutPower77Kfull=zeros(length(freqOut),1);
+OutPowerOVCfull=zeros(length(freqOut),1);
 
 % Define angular frequency and conductivity
-omega=freq*pi*2;
-% omegafull = zeros(length(freqOut),1);
-% for freqs=1:length(freqOut)
-%     omegafull(freqs)=freqOut(freqs)*pi*2;
-% end
+omegafull = zeros(length(freqOut),1);
+for freqs=1:length(freqOut)
+    omegafull(freqs)=freqOut(freqs)*pi*2;
+end
 sigma=ProblemData.matr.sigma;
 
 
@@ -140,11 +136,7 @@ for i=1:nelem
             ldyn(:,freqs) = Dynamic(lunkv,freqs);
             ldynmech(:,freqs) = Dynamic(lunkv2,freqs);
         end
-        
-        lsol=zeros(esizet,1);
-        lsol(lunkv>0)=sol(lunkv(lunkv>0));
-        lsolmech=zeros(3*esizeH1,1);
-        lsolmech(lunkv2>0)=sol(lunkv2(lunkv2>0));
+
         lsolStatic=zeros(esizet,1);
         lsolStatic(lunkvStatic>0)=solStatic(lunkvStatic(lunkvStatic>0),1);
         
@@ -197,7 +189,7 @@ for i=1:nelem
                 
                 
                 % Compute the magnetic vector Potential
-                e=ph'*lsol; % This is the magnetic vector potential
+                efull = ph'*ldyn; % This is the magnetic vector potential
                 
                 % Compute the static magnetic flux density
                 curlADC=cph'*lsolStatic;
@@ -214,19 +206,24 @@ for i=1:nelem
             
                 % compute the solution for this problem, at this integration point
                 % in this element
-                u_D=H1bas3D*lsolmech;
+                u_Dfull = H1bas3D*ldynmech;
                 
-                % Compute the electric field
-                ElectricField=1i*omega*(cross(curlADC,u_D)-e);
+                % Compute the electric field                
+                for freqs = 1:length(freqOut)
+                    ElectricFieldfull(:,freqs)=1i*omegafull(freqs)*(cross(curlADC,u_Dfull(:,freqs))-efull(:,freqs));
+                end
                 
                 % The output power is:
-
-                if any(material==mat4K)
-                    OutPower4K=OutPower4K+0.5*cond4K*sigma(material)*abs((ElectricField'*ElectricField))*intw(pp)*det;
-                elseif any(material==mat77K)
-                    OutPower77K=OutPower77K+0.5*cond77K*sigma(material)*abs((ElectricField'*ElectricField))*intw(pp)*det;
-                elseif any(material==matOVC)
-                    OutPowerOVC=OutPowerOVC+0.5*condOVC*sigma(material)*abs((ElectricField'*ElectricField))*intw(pp)*det;
+       
+                for freqs = 1:length(freqOut)
+                    EF = ElectricFieldfull(:,freqs);
+                    if any(material==mat4K)
+                        OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+                    elseif any(material==mat77K)
+                        OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+                    elseif any(material==matOVC)
+                        OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+                    end
                 end
                 
             end
@@ -261,8 +258,8 @@ for i=1:nelem
                 
                 
                 % Compute the magnetic vector Potential
-                e=ph'*lsol; % This is the magnetic vector potential
-%                 efull = ph'*ldyn;
+                efull = ph'*ldyn; % This is the magnetic vector potential
+                
                 
                 % Compute the static magnetic flux density
                 curlADC=cph'*lsolStatic;
@@ -279,37 +276,25 @@ for i=1:nelem
             
                 % compute the solution for this problem, at this integration point
                 % in this element
-                u_D=H1bas3D*lsolmech;
-%                 u_Dfull = H1bas3D*ldynmech;
+                u_Dfull = H1bas3D*ldynmech;
                 
-                % Compute the electric field
-                ElectricField=1i*omega*(cross(curlADC,u_D)-e);
-                
-%                 for freqs = 1:length(freqOut)
-%                     ElectricFieldfull(:,freqs)=1i*omegafull(freqs)*(cross(curlADC,u_Dfull(:,freqs))-efull(:,freqs));
-%                 end
+                % Compute the electric field                
+                for freqs = 1:length(freqOut)
+                    ElectricFieldfull(:,freqs)=1i*omegafull(freqs)*(cross(curlADC,u_Dfull(:,freqs))-efull(:,freqs));
+                end
                 
                 % The output power is:
-                
-                
-                if any(material==mat4K)
-                    OutPower4K=OutPower4K+0.5*cond4K*sigma(material)*abs((ElectricField'*ElectricField))*intw(pp)*det;
-                elseif any(material==mat77K)
-                    OutPower77K=OutPower77K+0.5*cond77K*sigma(material)*abs((ElectricField'*ElectricField))*intw(pp)*det;
-                elseif any(material==matOVC)
-                    OutPowerOVC=OutPowerOVC+0.5*condOVC*sigma(material)*abs((ElectricField'*ElectricField))*intw(pp)*det;
-                end
        
-%                 for freqs = 1:length(freqOut)
-%                     EF = ElectricFieldfull(:,freqs);
-%                     if any(material==mat4K)
-%                         OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-%                     elseif any(material==mat77K)
-%                         OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-%                     elseif any(material==matOVC)
-%                         OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-%                     end
-%                 end
+                for freqs = 1:length(freqOut)
+                    EF = ElectricFieldfull(:,freqs);
+                    if any(material==mat4K)
+                        OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+                    elseif any(material==mat77K)
+                        OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+                    elseif any(material==matOVC)
+                        OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+                    end
+                end
 
                 
             end
@@ -318,4 +303,3 @@ for i=1:nelem
     end
     % end of loop over elements
 end
-disp(['The Output Power is: ', num2str(OutPower4K)]);
