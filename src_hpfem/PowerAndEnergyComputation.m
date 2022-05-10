@@ -1,4 +1,4 @@
-function [IntegratedFields]= PowerAndEnergyComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic)
+function [IntegratedFields]= PowerAndEnergyComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic,method)
 
 if Options.SplitMech==1 && Options.CustomMRIPost==1
     
@@ -12,7 +12,7 @@ if Options.SplitMech==1 && Options.CustomMRIPost==1
     DisplacementNorm77K=zeros(nCond*length(freqOut),1);
     DisplacementNormOVC=zeros(nCond*length(freqOut),1);
     
-    new = 1;
+    method = 1;
     
     count=0;
     
@@ -24,7 +24,7 @@ if Options.SplitMech==1 && Options.CustomMRIPost==1
         
         tic
         
-        if new == 1
+        if method == 1
             [OutPower4K,OutPower77K,OutPowerOVC]=PowerCalculationStaggeredMRIfull(Mesh,Unknown,Basis,Quadrature,ProblemData,UnknownStatic,solStatic,condOVC,cond77K,cond4K,Dynamic,freqOut);
             [DisplacementNorm4K,DisplacementNorm77K,DisplacementNormOVC] = DispNormCalculationMRIfull(Mesh,Unknown,Basis,Quadrature,ProblemData,Dynamic,freqOut);
         else

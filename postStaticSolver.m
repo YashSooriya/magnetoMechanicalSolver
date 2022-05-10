@@ -1,4 +1,4 @@
-function postStaticSolver(dirDispNew, dampRatio, orderEM, orderMech)
+function postStaticSolver(dirDispNew, dampRatio, orderEM, orderMech,method)
 
 delete(gcp('nocreate'))
 
@@ -23,11 +23,11 @@ else
     [Dynamic, Toc, toccount]=frequencySolverFullParallel(Static,StaticCurrent,UnknownCurrent,UnknownStatic,Mesh,Basis,Quadrature,Unknown,ProblemData,Options,freqOut,dampChoice,dampRatio,CondFactorOut,CondFactorChoice,Ncores, ticInit, Toc, toccount);
 end
 
-currDate = strrep(datestr(datetime), ':','_');
+currDate = replace(datestr(datetime), {':',' '}, {'_','.'});
 folder = ['data/dynamicData/',currDate,'/'];
 mkdir(folder)
 writetable(struct2table(Options),[folder,'Options.txt'])
-saveFile=[folder,'postStaticSolverData'];
+saveFile=[folder,'postDynamicSolverData'];
 save(saveFile);
 disp(['Saved to ', saveFile])
 
@@ -95,8 +95,8 @@ toccount = toccount + 1;
 %=========================================================================
     if fieldCalc==1
     disp('Calcuating Power and Energy ...')
-    [IntegratedFields]= PowerAndEnergyComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
-    currDate = strrep(datestr(datetime), ':','_');
+    [IntegratedFields]= PowerAndEnergyComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic,method);
+    currDate = replace(datestr(datetime), {':',' '}, {'_','.'});
     folder = ['data/powerEnergy/',currDate,'/'];
     mkdir(folder)
     writetable(struct2table(Options),[folder,'Options.txt'])
@@ -115,7 +115,7 @@ toccount = toccount + 1;
 if normA==1
     disp('Calcuating Norm A ...')
     [IntegratedNormA]= NormAComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
-    currDate = strrep(datestr(datetime), ':','_');
+    currDate = replace(datestr(datetime), {':',' '}, {'_','.'});
     folder = ['data/normA/',currDate,'/'];
     mkdir(folder)
     writetable(struct2table(Options),[folder,'Options.txt'])
@@ -136,7 +136,7 @@ toccount = toccount + 1;
 if normCurlA==1
     disp('Calcuating Norm curlA ...')
     [IntegratedNormCurlA]= CurlNormAComputation(Options,CondFactorOut,freqOut,Mesh,Unknown,Basis,Quadrature,Dynamic,ProblemData,UnknownStatic,solStatic);
-    currDate = strrep(datestr(datetime), ':','_');
+    currDate = replace(datestr(datetime), {':',' '}, {'_','.'});
     folder = ['data/normCurlA/',currDate,'/'];
     mkdir(folder)
     writetable(struct2table(Options),[folder,'Options.txt'])
@@ -195,7 +195,7 @@ end
 Toc(toccount) = toc(ticInit);
 
 Toc = Toc.';
-currDate = strrep(datestr(datetime), ':','_');
+currDate = replace(datestr(datetime), {':',' '}, {'_','.'});
 folder = ['data/runTime/',currDate,'/'];
 mkdir(folder)
 writetable(array2table(Toc),[folder,'ticktoc.csv'])

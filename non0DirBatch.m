@@ -27,9 +27,9 @@ disp_min = 0;               % Set starting displacement value (in metres)
 disp_max = 0.1;             % Set final displacement value (in metres)
 disp_inc = 0.02;            % Set increment steps (in metres)
 
-disp_spec = ([0 0.001]);    % Set specified displacement values
+disp_spec = ([0]);          % Set specified displacement values
 
-dir_DC = 1;                 % Set if Dirichlett displacement should be non-zero (1) or not (0) for DC solver
+dir_DC = 0;                 % Set if Dirichlett displacement should be non-zero (1) or not (0) for DC solver
 
 %-------------------------------------------------------------------------
 % Output Frequency Refinement Definition
@@ -41,6 +41,11 @@ range = 100;
 refinedDelFOut = 5;
 
 %-------------------------------------------------------------------------
+% Postprocessing
+%-------------------------------------------------------------------------
+method = 1;                 % Use updated faster power and energy computation method (1) or not (0)
+
+%-------------------------------------------------------------------------
 % Start Batch Processing
 %-------------------------------------------------------------------------
 if solver == 1
@@ -49,24 +54,24 @@ if solver == 1
             if axis == 'x'
                 if singleStatic == 1
                     if i == 1
-                        mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                        mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                     else
-                        postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech)
+                        postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech,method)
                     end
                 else
-                    mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                    mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                 end
             elseif axis == 'y'
                 if i == 1
-                    mainParallelBatch(Ns,[0, disp_spec(i), 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                    mainParallelBatch(Ns,[0, disp_spec(i), 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                 else
-                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech)
+                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech,method)
                 end
             elseif axis == 'z'
                 if i == 1
-                    mainParallelBatch(Ns,[0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                    mainParallelBatch(Ns,[0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                 else
-                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech)
+                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech,method)
                 end
             else
                 disp('Axis for non-0 dir has been defined incorrectly')
@@ -76,21 +81,21 @@ if solver == 1
         for i = disp_min:disp_inc:disp_max
             if axis == 'x'
                 if i == 1
-                    mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                    mainParallelBatch(Ns,[disp_spec(i), 0, 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                 else
-                    postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech)
+                    postStaticSolver([disp_spec(i), 0, 0], dampRatio, orderEM, orderMech,method)
                 end
             elseif axis == 'y'
                 if i == 1
-                    mainParallelBatch(Ns,[0, disp_spec(i), 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                    mainParallelBatch(Ns,[0, disp_spec(i), 0], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                 else
-                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech)
+                    postStaticSolver([0, disp_spec(i), 0], dampRatio, orderEM, orderMech,method)
                 end
             elseif axis == 'z'
                 if i == 1
-                    mainParallelBatch(Ns,[0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut)
+                    mainParallelBatch(Ns,[0, 0, disp_spec(i)], dampRatio, orderEM, orderMech, Ncores, readMesh, dir_DC, refined, POIs, range, refinedDelFOut,method)
                 else
-                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech)
+                    postStaticSolver([0, 0, disp_spec(i)], dampRatio, orderEM, orderMech,method)
                 end
             else
                 disp('Axis for non-0 dir has been defined incorrectly')
