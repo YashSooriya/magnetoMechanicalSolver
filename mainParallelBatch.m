@@ -28,7 +28,7 @@ end
 
 if chooseOut == "marcos"
     del_fout = 10;
-    N_o = 499;
+    N_o = 5;
     freqOut = linspace(15,15+(N_o-1)*del_fout, N_o);
 elseif chooseOut == "evenly spaced"
     N_o = 10;
@@ -337,8 +337,8 @@ mkdir(folder)
 writetable(struct2table(Options),[folder,'Options.txt'])
 saveFile=[folder,'postStaticSolverData'];
 saveFileTemp=[folderTemp,'postStaticSolverData'];
-save(saveFile);
-save(saveFileTemp);
+save(saveFile, '-v7.3');
+save(saveFileTemp, '-v7.3');
 disp(['Saved to ', saveFile])
 
 Options.dirDisp=dirDisp;
@@ -359,7 +359,7 @@ folder = ['data/dynamicData/',currDate,'/'];
 mkdir(folder)
 writetable(struct2table(Options),[folder,'Options.txt'])
 saveFile=[folder,'postDynamicSolverData'];
-save(saveFile);
+save(saveFile, '-v7.3');
 disp(['Saved to ', saveFile])
 
 Toc(toccount) = toc(ticInit);
