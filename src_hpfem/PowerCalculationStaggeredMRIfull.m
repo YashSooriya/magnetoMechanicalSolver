@@ -208,10 +208,12 @@ for i=1:nelem
                 % in this element
                 u_Dfull = H1bas3D*ldynmech;
                 
+
+                
                 % Compute the electric field                
-                for freqs = 1:length(freqOut)
-                    ElectricFieldfull(:,freqs)=1i*omegafull(freqs)*(cross(curlADC,u_Dfull(:,freqs))-efull(:,freqs));
-                end
+                curlACDrep = repmat(curlADC, 1, length(freqOut));
+                crossfull = cross(curlACDrep,u_Dfull);
+                ElectricFieldfull = (1i*(omegafull.')).*((crossfull)-(efull));
                 
                 % The output power is:
        
@@ -278,11 +280,12 @@ for i=1:nelem
                 % in this element
                 u_Dfull = H1bas3D*ldynmech;
                 
-                % Compute the electric field                
-                for freqs = 1:length(freqOut)
-                    ElectricFieldfull(:,freqs)=1i*omegafull(freqs)*(cross(curlADC,u_Dfull(:,freqs))-efull(:,freqs));
-                end
-                
+                % Compute the electric field     
+
+                curlACDrep = repmat(curlADC, 1, length(freqOut));
+                crossfull = cross(curlACDrep,u_Dfull);
+                ElectricFieldfull = (1i*(omegafull.')).*((crossfull)-(efull));
+
                 % The output power is:
        
                 for freqs = 1:length(freqOut)

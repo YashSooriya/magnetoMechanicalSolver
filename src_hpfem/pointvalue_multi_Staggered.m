@@ -433,7 +433,8 @@ for imat = 1:nmat
     % write out this VTU file
     disp('writing data to the file...')
     if probstatic==0
-        coordn=coordn+1e4*displ;
+%         coordn=coordn+1e4*displ;
+        coordn=coordn+displ;
         filename=[job '_StaggeredSolver2Tol7Undeformed' num2str(imat-1) '_' num2str(freq) 'Hz' '_p' num2str(orderH1) '_q' num2str(order) '.vtu']
         vtuk_puvw_write ( filename, npoinn, nelemn, ...
             coordn, intman, pen, phen,displ)
