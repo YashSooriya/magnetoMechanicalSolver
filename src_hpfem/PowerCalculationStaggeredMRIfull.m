@@ -58,6 +58,7 @@ lfc = zeros(4,(gorder*(gorder-1)/2),3);
 OutPower4Kfull=zeros(length(freqOut),1);
 OutPower77Kfull=zeros(length(freqOut),1);
 OutPowerOVCfull=zeros(length(freqOut),1);
+OutPower4Kfulltest=zeros(length(freqOut),1);
 
 % Define angular frequency and conductivity
 omegafull = zeros(length(freqOut),1);
@@ -205,7 +206,7 @@ for i=1:nelem
 
             
                 % compute the solution for this problem, at this integration point
-                % in this element
+                % in this element 
                 u_Dfull = H1bas3D*ldynmech;
                 
 
@@ -214,18 +215,27 @@ for i=1:nelem
                 curlACDrep = repmat(curlADC, 1, length(freqOut));
                 crossfull = cross(curlACDrep,u_Dfull);
                 ElectricFieldfull = (1i*(omegafull.')).*((crossfull)-(efull));
+                EF_full = abs(diag(ElectricFieldfull'*ElectricFieldfull));
                 
                 % The output power is:
        
-                for freqs = 1:length(freqOut)
-                    EF = ElectricFieldfull(:,freqs);
-                    if any(material==mat4K)
-                        OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-                    elseif any(material==mat77K)
-                        OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-                    elseif any(material==matOVC)
-                        OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-                    end
+%                 for freqs = 1:length(freqOut)
+%                     EF = ElectricFieldfull(:,freqs);
+%                     if any(material==mat4K)
+%                         OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+%                     elseif any(material==mat77K)
+%                         OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+%                     elseif any(material==matOVC)
+%                         OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+%                     end
+%                 end
+
+                if any(material==mat4K)
+                    OutPower4Kfull=OutPower4Kfull+((0.5*cond4K*sigma(material)*intw(pp)*det).*EF_full);
+                elseif any(material==mat77K)
+                    OutPower77Kfull=OutPower77Kfull+((0.5*cond77K*sigma(material)*intw(pp)*det).*EF_full);
+                elseif any(material==matOVC)
+                    OutPowerOVCfull=OutPowerOVCfull+((0.5*condOVC*sigma(material)*intw(pp)*det).*EF_full);
                 end
                 
             end
@@ -285,18 +295,28 @@ for i=1:nelem
                 curlACDrep = repmat(curlADC, 1, length(freqOut));
                 crossfull = cross(curlACDrep,u_Dfull);
                 ElectricFieldfull = (1i*(omegafull.')).*((crossfull)-(efull));
+                EF_full = abs(diag(ElectricFieldfull'*ElectricFieldfull));
 
                 % The output power is:
        
-                for freqs = 1:length(freqOut)
-                    EF = ElectricFieldfull(:,freqs);
-                    if any(material==mat4K)
-                        OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-                    elseif any(material==mat77K)
-                        OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-                    elseif any(material==matOVC)
-                        OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
-                    end
+%                 for freqs = 1:length(freqOut)
+%                   EF = ElectricFieldfull(:,freqs);
+%                     if any(material==mat4K)
+%                         OutPower4Kfull(freqs)=OutPower4Kfull(freqs)+0.5*cond4K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+%                     elseif any(material==mat77K)
+%                         OutPower77Kfull(freqs)=OutPower77Kfull(freqs)+0.5*cond77K*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+%                     elseif any(material==matOVC)
+%                         OutPowerOVCfull(freqs)=OutPowerOVCfull(freqs)+0.5*condOVC*sigma(material)*abs((EF'*EF))*intw(pp)*det;
+%                     end
+%                 end
+
+                                 
+                if any(material==mat4K)
+                    OutPower4Kfull=OutPower4Kfull+((0.5*cond4K*sigma(material)*intw(pp)*det).*EF_full);
+                elseif any(material==mat77K)
+                    OutPower77Kfull=OutPower77Kfull+((0.5*cond77K*sigma(material)*intw(pp)*det).*EF_full);
+                elseif any(material==matOVC)
+                    OutPowerOVCfull=OutPowerOVCfull+((0.5*condOVC*sigma(material)*intw(pp)*det).*EF_full);
                 end
 
                 
